@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
+<link rel="preconnect" href="https://firestore.googleapis.com">
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <title>AL3M STOR — شحن ألعاب</title>
@@ -183,6 +185,19 @@ html{scroll-behavior:smooth}
 .row{border-top:1px dashed #3a3a50;padding:10px 0;font-size:14px}
 .row small{color:var(--muted);display:block}.row .bt{display:flex;gap:8px}.row .bt .mb{margin:6px 0 0}
 .msg{color:#ff8a8a;font-size:14px;min-height:20px;margin:4px 0}
+
+/* الشريط السفلي */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:7;background:#000;display:flex;justify-content:space-around;align-items:flex-end;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(243,191,78,.25)}
+.nav button{background:none;border:0;color:#fff;display:flex;flex-direction:column;align-items:center;gap:2px;font:700 11px 'Tajawal',sans-serif;cursor:pointer;padding:0;min-width:70px;-webkit-tap-highlight-color:transparent}
+.nav button i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;transition:background .2s,transform .2s}
+.nav button svg{width:26px;height:26px;fill:#fff}
+.nav button.on i{background:#4d4d4d;transform:translateY(-10px)}
+.nav button.on span{transform:translateY(-8px)}
+.fab{bottom:calc(86px + env(safe-area-inset-bottom,0px))!important}
+.wrap{padding-bottom:150px!important}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{aspect-ratio:1;border:0;border-radius:18px;background:linear-gradient(160deg,#232333,#12121b);color:var(--gold-l);font:800 20px 'Tajawal',sans-serif;box-shadow:0 0 0 1px rgba(243,191,78,.35),0 4px 0 #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.tile small{color:var(--muted);font:500 13px 'Tajawal',sans-serif}
 </style>
 </head>
 <body>
@@ -290,6 +305,11 @@ html{scroll-behavior:smooth}
 </div>
 
 <div id="modal" hidden><div class="mbox"><button class="mx" type="button" onclick="closeM()" aria-label="إغلاق">✕</button><div id="mbody"></div></div></div>
+<nav class="nav" aria-label="التنقل">
+<button id="nOrd" type="button"><i><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg></i><span>طلباتي</span></button>
+<button id="nHome" class="on" type="button"><i><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></i><span>الرئيسية</span></button>
+<button id="nTop" type="button"><i><svg viewBox="0 0 24 24"><path d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9zm-9-2h10V8H12v8zm4-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg></i><span>شحن الرصيد</span></button>
+</nav>
 <a class="fab" id="fab" href="#" target="_blank" rel="noopener" aria-label="تواصل عبر واتساب">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v13H9l-6 4z" fill="#fff"/></svg>
 </a>
@@ -518,24 +538,25 @@ drawCats();
 // ===== إعدادات Firebase: الصقها من Firebase Console > Project settings =====
 var FB_CONFIG = {apiKey:"AIzaSyBNZyUc7_XMteeSBEvUwZvVdBUAscF90mM", authDomain:"al3m-stor.firebaseapp.com", projectId:"al3m-stor", appId:"1:49571071314:web:4a765b18951c10848fe68b"};
 var ADMIN_EMAIL = "klshy7951@gmail.com";   // إيميل حسابك أنت (الأدمن)
-var tiv=null, me=null, bal=0, uname="", mine=[], pend=[], pendT=[], fbOK=!!(window.firebase && FB_CONFIG.apiKey);
+var tiv=null, me=null, bal=0, uname="", mine=[], mineT=[], pend=[], pendT=[], fbOK=!!(window.firebase && FB_CONFIG.apiKey);
 function esc(t){return String(t==null?"":t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function isAdmin(){return !!(me && me.email && me.email.toLowerCase()===ADMIN_EMAIL.toLowerCase())}
 function showM(h){delete $('mbody').dataset.v;$('mbody').innerHTML=h;$('modal').hidden=false}
-function closeM(){$('modal').hidden=true;if(tiv){clearInterval(tiv);tiv=null}}
+function closeM(){$('modal').hidden=true;setNav('nHome');if(tiv){clearInterval(tiv);tiv=null}}
 function setErr(t){$('err').textContent=t||""}
 function chip(){ $('balBtn').textContent = me ? money(bal) : "دخول"; var a=isAdmin(); $('admBtn').hidden=!a; $('admN').textContent=a?'('+(pend.length+pendT.length)+')':''; }
 chip();
-var ST={pending:"قيد المراجعة",accepted:"مقبول",rejected:"مرفوض (أُرجع الرصيد)"};
+var ST={pending:"قيد التنفيذ ⌛",accepted:"تم التنفيذ ✅",rejected:"مرفوض ❌ (أُرجع الرصيد)"}, STT={pending:"قيد المراجعة ⌛",approved:"تمت الإضافة ✅",rejected:"مرفوض ❌"};
 
 if (fbOK){
   firebase.initializeApp(FB_CONFIG);
-  var auth=firebase.auth(), db=firebase.firestore(), FV=firebase.firestore.FieldValue, offs=[];
+  var auth=firebase.auth(), db=firebase.firestore(), FV=firebase.firestore.FieldValue, offs=[]; db.settings({experimentalAutoDetectLongPolling:true,merge:true});
   auth.onAuthStateChanged(function(u){
-    offs.forEach(function(f){f()}); offs=[]; me=u; bal=0; mine=[]; pend=[]; pendT=[]; chip();
+    offs.forEach(function(f){f()}); offs=[]; me=u; bal=0; mine=[]; mineT=[]; pend=[]; pendT=[]; chip();
     if(!u) return;
     offs.push(db.collection('users').doc(u.uid).onSnapshot(function(s){var d=s.data()||{};bal=d.balance||0;uname=d.name||"";chip()}));
-    offs.push(db.collection('orders').where('uid','==',u.uid).onSnapshot(function(q){mine=q.docs.map(function(d){return d.data()}).sort(function(a,b){return (b.createdAt?b.createdAt.seconds:9e9)-(a.createdAt?a.createdAt.seconds:9e9)})}));
+    offs.push(db.collection('orders').where('uid','==',u.uid).onSnapshot(function(q){mine=q.docs.map(function(d){return d.data()}).sort(function(a,b){return (b.createdAt?b.createdAt.seconds:9e9)-(a.createdAt?a.createdAt.seconds:9e9)});refO()}));
+    offs.push(db.collection('topups').where('uid','==',u.uid).onSnapshot(function(q){mineT=q.docs.map(function(d){return d.data()}).sort(function(a,b){return (b.createdAt?b.createdAt.seconds:9e9)-(a.createdAt?a.createdAt.seconds:9e9)});refO()}));
     if(isAdmin()) offs.push(db.collection('orders').where('status','==','pending').onSnapshot(function(q){pend=q.docs.map(function(d){var x=d.data();x.id=d.id;return x});chip();if(!$('modal').hidden&&$('mbody').dataset.v==='admin')adminM()}));
     if(isAdmin()) offs.push(db.collection('topups').where('status','==','pending').onSnapshot(function(q){pendT=q.docs.map(function(d){var x=d.data();x.id=d.id;return x});chip();if(!$('modal').hidden&&$('mbody').dataset.v==='admin')adminM()}));
   });
@@ -544,9 +565,9 @@ function needFb(){ if(!fbOK){showM('<h3>غير مفعّل</h3><p>أضف إعدا
 
 function loginM(msg){
   showM('<h3>تسجيل الدخول</h3><input id="lm" type="email" placeholder="الإيميل" autocomplete="email"><input id="lp" type="password" placeholder="كلمة المرور (6 أحرف+)" autocomplete="current-password"><input id="ln" type="text" placeholder="الاسم (للحساب الجديد فقط)"><p class="msg" id="lmsg">'+esc(msg||"")+'</p><button class="mb" id="lgo" type="button">دخول</button><button class="mb g" id="lsu" type="button">إنشاء حساب جديد</button>');
-  function er(e){$('lmsg').textContent=(e&&e.code==='auth/email-already-in-use')?'الإيميل مستخدم':(e&&e.code==='auth/weak-password')?'كلمة المرور ضعيفة':'تحقق من الإيميل وكلمة المرور'}
-  $('lgo').onclick=function(){auth.signInWithEmailAndPassword($('lm').value.trim(),$('lp').value).then(closeM).catch(er)};
-  $('lsu').onclick=function(){var n=$('ln').value.trim()||"زبون",em=$('lm').value.trim();
+  function er(e){$('lgo').disabled=$('lsu').disabled=false;$('lgo').textContent='دخول';$('lsu').textContent='إنشاء حساب جديد';$('lmsg').textContent=(e&&e.code==='auth/email-already-in-use')?'الإيميل مستخدم':(e&&e.code==='auth/weak-password')?'كلمة المرور ضعيفة':'تحقق من الإيميل وكلمة المرور'}
+  $('lgo').onclick=function(){this.disabled=$('lsu').disabled=true;this.textContent='جاري الدخول...';auth.signInWithEmailAndPassword($('lm').value.trim(),$('lp').value).then(closeM).catch(er)};
+  $('lsu').onclick=function(){this.disabled=$('lgo').disabled=true;this.textContent='جاري إنشاء الحساب...';var n=$('ln').value.trim()||"زبون",em=$('lm').value.trim();
     auth.createUserWithEmailAndPassword(em,$('lp').value).then(function(c){return db.collection('users').doc(c.user.uid).set({name:n,email:c.user.email,balance:0})}).then(closeM).catch(er)};
 }
 function acctM(){
@@ -585,8 +606,9 @@ function decideT(id,reject){
 }
 function topM(){
   if(tiv){clearInterval(tiv);tiv=null}
-  showM('<h3>إضافة رصيد</h3><p style="margin:0 0 8px;color:#9c9cb0">اختر طريقة الدفع</p>'+TOPUP.map(function(m,i){return '<button class="mb g" data-m="'+i+'" type="button">'+esc(m.name)+'</button>'}).join(""));
+  showM('<h3>شحن الرصيد</h3><p style="margin:0 0 10px;color:#9c9cb0">اختر طريقة الدفع</p><div class="tiles">'+TOPUP.map(function(m,i){return '<button class="tile" data-m="'+i+'" type="button">'+esc(m.name)+'<small>'+(m.cur.length>1?'ل.س · دولار $':'ل.س')+'</small></button>'}).join("")+'</div>');
   [].forEach.call($('mbody').querySelectorAll('button[data-m]'),function(b){b.onclick=function(){curM(+b.dataset.m)}});
+  setNav('nTop');
 }
 function curM(k){
   var M=TOPUP[k];
@@ -610,13 +632,25 @@ function invM(k,v,c){
   $('tdone').onclick=function(){
     var tx=$('tx').value.trim().replace(/[^A-Za-z0-9]/g,'');
     if(tx.length<4){$('tmsg').textContent='اكتب رقم العملية';return}
-    this.disabled=true;
+    this.disabled=true;this.textContent='جاري الإرسال...';
     db.collection('topups').doc('m'+k+'_'+tx).set({uid:me.uid,email:me.email,name:uname,method:M.name,cur:c,amount:v,txn:tx,status:'pending',createdAt:FV.serverTimestamp()})
      .then(function(){if(tiv){clearInterval(tiv);tiv=null}showM('<h3>تم استلام طلبك ✓</h3><p>بعد مراجعة رقم العملية بيُضاف الرصيد لحسابك.</p><button class="mb" type="button" onclick="closeM()">حسنًا</button>')})
-     .catch(function(){$('tdone').disabled=false;$('tmsg').textContent='رقم العملية مستخدم أو حدث خطأ'});
+     .catch(function(){$('tdone').disabled=false;$('tdone').textContent='إتمام الطلب';$('tmsg').textContent='رقم العملية مستخدم أو حدث خطأ'});
   };
 }
 $('admBtn').onclick=function(){ if(isAdmin()) adminM() };
+function setNav(id){['nOrd','nHome','nTop'].forEach(function(i){$(i).classList.toggle('on',i===id)})}
+function refO(){if(!$('modal').hidden&&$('mbody').dataset.v==='orders')ordersM()}
+function ordersM(){
+  var h='<h3>طلباتي</h3>';
+  h+=mine.length?mine.slice(0,30).map(function(o){return '<div class="row"><b>'+esc(o.game)+' — '+esc(o.pkg)+'</b><small>'+money(o.price)+'</small><small style="color:'+(o.status==='accepted'?'#3cea82':o.status==='rejected'?'#ff8a8a':'#f3bf4e')+'">'+(ST[o.status]||"")+'</small></div>'}).join(""):'<p class="msg" style="color:#9c9cb0">لا يوجد طلبات بعد.</p>';
+  if(mineT.length) h+='<h3 style="margin-top:14px;font-size:18px">طلبات الشحن</h3>'+mineT.slice(0,20).map(function(o){return '<div class="row"><b>'+mm(o.amount,o.cur)+' — '+esc(o.method)+'</b><small>'+(STT[o.status]||"")+'</small></div>'}).join("");
+  showM(h); $('mbody').dataset.v='orders'; setNav('nOrd');
+}
+$('nHome').onclick=function(){closeM();['list','game','social'].forEach(function(i){$(i).hidden=true});$('home').hidden=false;window.scrollTo(0,0)};
+$('nOrd').onclick=function(){setNav('nOrd');if(needFb())return;me?ordersM():loginM('سجّل دخولك لعرض طلباتك')};
+$('nTop').onclick=function(){setNav('nTop');if(needFb())return;me?topM():loginM('سجّل دخولك أولاً')};
+
 $('balBtn').onclick=function(){ if(needFb())return; me?acctM():loginM() };
 $('addBal').onclick=function(){ if(needFb())return; me?topM():loginM('سجّل دخولك أولاً') };
 $('modal').onclick=function(e){ if(e.target===this) closeM() };
@@ -628,12 +662,12 @@ $('wa').addEventListener('click',function(e){
   if(!me){loginM('سجّل دخولك لإتمام الطلب');return}
   var P=pick, p=P.p, G=GAMES[P.g], C=G.cats[P.c];
   if(bal<p){setErr("رصيدك غير كافٍ ("+money(bal)+"). اضغط + لإضافة رصيد.");return}
-  var uref=db.collection('users').doc(me.uid), oref=db.collection('orders').doc();
+  setErr('جاري إرسال الطلب...');var uref=db.collection('users').doc(me.uid), oref=db.collection('orders').doc();
   db.runTransaction(function(t){return t.get(uref).then(function(s){
     var b=(s.data()||{}).balance||0; if(b<p) throw new Error('NOFUNDS');
     t.update(uref,{balance:b-p,lastOrder:oref.id});
     t.set(oref,{uid:me.uid,email:me.email,name:uname,game:clean(G.name),cat:clean(C.name),pkg:clean(P.n),price:p,status:'pending',createdAt:FV.serverTimestamp()});
-  })}).then(function(){pick=null;draw();sum();showM('<h3>تم إرسال طلبك ✓</h3><p>خُصم المبلغ من رصيدك. إذا رُفض الطلب بيرجع لرصيدك تلقائيًا.</p><button class="mb" type="button" onclick="closeM()">حسنًا</button>')})
+  })}).then(function(){pick=null;draw();sum();showM('<h3>'+esc(P.n)+'</h3><p style="font-size:20px;margin:6px 0">طلبك قيد التنفيذ ⌛</p><p style="color:#9c9cb0">خُصم المبلغ من رصيدك، وإذا رُفض الطلب بيرجع لرصيدك تلقائيًا.</p><button class="mb" type="button" onclick="closeM()">حسنًا</button><button class="mb g" id="gOrd" type="button">متابعة طلباتي</button>');$('gOrd').onclick=function(){setNav('nOrd');ordersM()}})
    .catch(function(er){setErr(er&&er.message==='NOFUNDS'?"رصيدك غير كافٍ":"تعذّر إرسال الطلب، حاول مرة ثانية")});
 });
 </script>
