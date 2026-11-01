@@ -263,6 +263,10 @@ html{scroll-behavior:smooth}
 #boot .orb i:nth-child(1){transform:translateX(-26px)}
 #boot .orb i:nth-child(2){transform:translateX(26px)}
 @keyframes bootspin{to{transform:rotate(360deg)}}
+.avrow{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.avimg{width:78px;height:78px;flex:none;border-radius:50%;object-fit:cover;background:#08080d;border:2px solid #e0b04a;display:grid;place-items:center;font-size:34px}
+.avbt{display:flex;flex-direction:column;gap:6px;flex:1}
+.avbt .mb{margin:0}
 </style>
 </head>
 <body>
@@ -708,7 +712,7 @@ if (fbOK){
     offs.forEach(function(f){f()}); offs=[]; seenN={o:null,t:null}; lastSt={o:null,t:null}; me=u; bal=0; cid=''; cidSt=0; mine=[]; mineT=[]; pend=[]; pendT=[]; authReady=true; chip();
     if(!u){ flushQ(); bootStep('auth'); return }
     setTimeout(flushQ,4000);
-    offs.push(db.collection('users').doc(u.uid).onSnapshot(function(s){var d=s.data()||{};bal=d.balance||0;uname=d.name||"";cid=d.cid||"";chip();flushQ();bootStep('auth');if(s.exists)ensureCid(d)},function(){flushQ();bootStep('auth')}));
+    offs.push(db.collection('users').doc(u.uid).onSnapshot(function(s){var d=s.data()||{};bal=d.balance||0;uname=d.name||"";cid=d.cid||"";avatar=d.avatar||"";chip();flushQ();bootStep('auth');if(s.exists)ensureCid(d)},function(){flushQ();bootStep('auth')}));
     offs.push(db.collection('orders').where('uid','==',u.uid).onSnapshot(function(q){mine=q.docs.map(function(d){var x=d.data();x.id=d.id;return x}).sort(function(a,b){return (b.createdAt?b.createdAt.seconds:9e9)-(a.createdAt?a.createdAt.seconds:9e9)});notifyChg('o',mine);refO()}));
     offs.push(db.collection('topups').where('uid','==',u.uid).onSnapshot(function(q){mineT=q.docs.map(function(d){var x=d.data();x.id=d.id;return x}).sort(function(a,b){return (b.createdAt?b.createdAt.seconds:9e9)-(a.createdAt?a.createdAt.seconds:9e9)});notifyChg('t',mineT);refO()}));
     if(isAdmin()) offs.push(db.collection('orders').where('status','==','pending').onSnapshot(function(q){pend=q.docs.map(function(d){var x=d.data();x.id=d.id;return x});newAlert('o',pend);chip();if(!$('modal').hidden&&$('mbody').dataset.v==='admin')admRefresh()}));
@@ -761,13 +765,39 @@ var FAQ=[["كيف أطلب؟","سجّل دخولك، اختر اللعبة وا�
 ["نسيت كلمة المرور؟","من شاشة الدخول اضغط نسيت كلمة المرور وبيوصلك رابط على إيميلك."]];
 function faqM(){showM('<h3>الأسئلة والشروط</h3>'+FAQ.map(function(f){return '<div class="row"><b>'+esc(f[0])+'</b><small>'+esc(f[1])+'</small></div>'}).join("")+'<button class="mb" type="button" onclick="closeM()">حسنًا</button>')}
 $('faqLink').onclick=faqM;
+function avBlock(){
+  return '<div class="avrow">'+(avatar?'<img class="avimg" id="avimg" alt="" src="'+avatar+'">':'<div class="avimg" id="avimg">👤</div>')
+   +'<div class="avbt"><button class="mb g" id="avpick" type="button">📷 '+(avatar?'تغيير الصورة':'إضافة صورة')+'</button>'+(avatar?'<button class="mb g" id="avdel" type="button">حذف الصورة</button>':'')+'<input type="file" id="avf" accept="image/*" hidden></div></div><p class="msg" id="avmsg"></p>';
+}
+function avMsg(t){var m=$('avmsg');if(m)m.textContent=t||''}
+function bindAvatar(){
+  if(!$('avpick')) return;
+  $('avpick').onclick=function(){$('avf').click()};
+  $('avf').onchange=function(){
+    var f=this.files&&this.files[0]; if(!f) return;
+    if(!/^image\//.test(f.type)){avMsg('اختر صورة فقط');return}
+    avMsg('جاري حفظ الصورة...');
+    var url=URL.createObjectURL(f), im=new Image();
+    im.onload=function(){
+      var S=160, c=document.createElement('canvas'); c.width=c.height=S;
+      var cx=c.getContext('2d'), m=Math.min(im.width,im.height), sx=(im.width-m)/2, sy=(im.height-m)/2;
+      cx.fillStyle='#000'; cx.fillRect(0,0,S,S); cx.drawImage(im,sx,sy,m,m,0,0,S,S);
+      URL.revokeObjectURL(url);
+      var data=c.toDataURL('image/jpeg',0.82);
+      db.collection('users').doc(me.uid).update({avatar:data}).then(function(){avatar=data;acctM()}).catch(function(){avMsg('تعذّر حفظ الصورة')});
+    };
+    im.onerror=function(){URL.revokeObjectURL(url);avMsg('تعذّر قراءة الصورة، جرّب صورة ثانية')};
+    im.src=url;
+  };
+  if($('avdel')) $('avdel').onclick=function(){db.collection('users').doc(me.uid).update({avatar:FV.delete()}).then(function(){avatar='';acctM()}).catch(function(){avMsg('فشل الحذف')})};
+}
 function acctM(){
-  var h='<h3>'+esc(uname||'حسابي')+'</h3><p style="margin:0 0 8px;color:#9c9cb0">'+esc(me.email)+'<br>الرصيد: <b>'+money(bal)+'</b>'+(cid?'<br>ID حسابك: <b dir="ltr" id="mycid" style="cursor:pointer">'+esc(cid)+'</b> <small>(اضغط للنسخ)</small>':'')+'</p>';
+  var h=avBlock()+'<h3>'+esc(uname||'حسابي')+'</h3><p style="margin:0 0 8px;color:#9c9cb0">'+esc(me.email)+'<br>الرصيد: <b>'+money(bal)+'</b>'+(cid?'<br>ID حسابك: <b dir="ltr" id="mycid" style="cursor:pointer">'+esc(cid)+'</b> <small>(اضغط للنسخ)</small>':'')+'</p>';
   h+='<button class="mb g" id="faq" type="button">❓ الأسئلة والشروط</button><button class="mb g" id="lo" type="button">تسجيل الخروج</button><h3 style="margin-top:14px;font-size:18px">طلباتي</h3>';
   h+=mine.length?mine.slice(0,15).map(function(o){return '<div class="row"><b>'+(o.no?'#'+esc(o.no)+' · ':'')+esc(o.game)+' — '+esc(o.pkg)+'</b><small>'+money(o.price)+' · '+(ST[o.status]||"")+'</small></div>'}).join(""):'<p class="msg" style="color:#9c9cb0">لا يوجد طلبات.</p>';
-  showM(h); $('lo').onclick=function(){auth.signOut();closeM()}; $('faq').onclick=faqM; if($('mycid')) $('mycid').onclick=function(){copyTxt(cid)};
+  showM(h); bindAvatar(); $('lo').onclick=function(){auth.signOut();closeM()}; $('faq').onclick=faqM; if($('mycid')) $('mycid').onclick=function(){copyTxt(cid)};
 }
-var admV='hub';
+var avatar='', admV='hub';
 function admRefresh(){ if(admV==='hub'||admV==='ords'||admV==='tops'){ var bx=$('mbody').parentNode, sc=bx.scrollTop; adminM(admV); bx.scrollTop=sc } }
 function admMsg(t,ok){ var m=$('amsg'); if(!m) return; m.style.color=ok?'#3cea82':''; m.textContent=t||'' }
 function admWho(){ return $('ae').value.trim().replace(/[\u0660-\u0669]/g,function(c){return c.charCodeAt(0)-1632}).replace(/[\u06F0-\u06F9]/g,function(c){return c.charCodeAt(0)-1776}).replace(/\s/g,'') }
@@ -840,7 +870,7 @@ function admBal(btn){
     var ref=d.ref, nb=0, nm=(d.data().name||'')+' ('+d.data().cid+')';
     return db.runTransaction(function(t){return t.get(ref).then(function(x){
       var b=(x.data()||{}).balance||0;
-      if(sub&&b<v) throw new Error('LOW');
+      
       nb=sub?b-v:b+v; t.update(ref,{balance:nb});
     })}).then(function(){admMsg((sub?'تم الخصم ✓ ':'تمت الإضافة ✓ ')+nm+' — الرصيد الجديد: '+money(nb),true);$('aa').value=''});
   }).catch(function(e){admMsg((e&&e.message==='LOW')?'رصيد الزبون أقل من المبلغ':'فشل')}).then(function(){btn.disabled=false});
