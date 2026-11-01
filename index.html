@@ -267,6 +267,9 @@ html{scroll-behavior:smooth}
 .avimg{width:78px;height:78px;flex:none;border-radius:50%;object-fit:cover;background:#08080d;border:2px solid #e0b04a;display:grid;place-items:center;font-size:34px}
 .avbt{display:flex;flex-direction:column;gap:6px;flex:1}
 .avbt .mb{margin:0}
+html,body{overflow-x:hidden}
+.bar,.acts,.acct{min-width:0}
+.bal{max-width:46vw;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -469,6 +472,7 @@ var cat = 0, PR = null;
 var g = 0, c = 0, pick = null, pay = null;
 var $ = function(id){return document.getElementById(id)};
 function money(n){return n.toLocaleString('en-US')+" "+CUR}
+function moneyShort(n){return Math.abs(n)>=1e12?n.toExponential(2).replace("e+","e")+" "+CUR:money(n)}
 function clean(s){
   return String(s).replace(/\ud83d\udc8e/g, "جوهرة").replace(/[\u{1F000}-\u{1FFFF}\u2600-\u27BF\uFE0F]/gu, "").replace(/\s+/g, " ").trim();
 }
@@ -643,7 +647,7 @@ function isAdmin(){return !!(me && me.email && me.email.toLowerCase()===ADMIN_EM
 function showM(h){delete $('mbody').dataset.v;$('mbody').innerHTML=h;$('modal').hidden=false}
 function closeM(){$('modal').hidden=true;setNav('nHome');if(tiv){clearInterval(tiv);tiv=null}}
 function setErr(t){$('err').textContent=t||""}
-function chip(){ $('balBtn').textContent = me ? money(bal) : ((fbOK&&!authReady) ? "..." : "دخول"); var a=isAdmin(); document.body.classList.toggle('adm',a); $('nAdm').hidden=!a; var an=a?pend.length+pendT.length:0; $('nAdmN').textContent=an; $('nAdmN').hidden=!an; }
+function chip(){ $('balBtn').textContent = me ? moneyShort(bal) : ((fbOK&&!authReady) ? "..." : "دخول"); var a=isAdmin(); document.body.classList.toggle('adm',a); $('nAdm').hidden=!a; var an=a?pend.length+pendT.length:0; $('nAdmN').textContent=an; $('nAdmN').hidden=!an; }
 chip();
 var ST={pending:"قيد التنفيذ ⌛",accepted:"تم التنفيذ ✅",rejected:"مرفوض ❌ (أُرجع الرصيد)"}, STT={pending:"قيد المراجعة ⌛",approved:"تمت الإضافة ✅",rejected:"مرفوض ❌"};
 
@@ -792,7 +796,7 @@ function bindAvatar(){
   if($('avdel')) $('avdel').onclick=function(){db.collection('users').doc(me.uid).update({avatar:FV.delete()}).then(function(){avatar='';acctM()}).catch(function(){avMsg('فشل الحذف')})};
 }
 function acctM(){
-  var h=avBlock()+'<h3>'+esc(uname||'حسابي')+'</h3><p style="margin:0 0 8px;color:#9c9cb0">'+esc(me.email)+'<br>الرصيد: <b>'+money(bal)+'</b>'+(cid?'<br>ID حسابك: <b dir="ltr" id="mycid" style="cursor:pointer">'+esc(cid)+'</b> <small>(اضغط للنسخ)</small>':'')+'</p>';
+  var h=avBlock()+'<h3>'+esc(uname||'حسابي')+'</h3><p style="margin:0 0 8px;color:#9c9cb0">'+esc(me.email)+'<br>الرصيد: <b>'+moneyShort(bal)+'</b>'+(cid?'<br>ID حسابك: <b dir="ltr" id="mycid" style="cursor:pointer">'+esc(cid)+'</b> <small>(اضغط للنسخ)</small>':'')+'</p>';
   h+='<button class="mb g" id="faq" type="button">❓ الأسئلة والشروط</button><button class="mb g" id="lo" type="button">تسجيل الخروج</button><h3 style="margin-top:14px;font-size:18px">طلباتي</h3>';
   h+=mine.length?mine.slice(0,15).map(function(o){return '<div class="row"><b>'+(o.no?'#'+esc(o.no)+' · ':'')+esc(o.game)+' — '+esc(o.pkg)+'</b><small>'+money(o.price)+' · '+(ST[o.status]||"")+'</small></div>'}).join(""):'<p class="msg" style="color:#9c9cb0">لا يوجد طلبات.</p>';
   showM(h); bindAvatar(); $('lo').onclick=function(){auth.signOut();closeM()}; $('faq').onclick=faqM; if($('mycid')) $('mycid').onclick=function(){copyTxt(cid)};
@@ -861,8 +865,9 @@ function admBan(v){
   }).catch(function(){admMsg('فشل')});
 }
 function admBal(btn){
-  var v=parseFloat($('aa').value); if(!(v>0)){admMsg('مبلغ غير صحيح');return}
-  var sub=document.querySelector('input[name=aop]:checked').value==='sub';
+  var op=document.querySelector('input[name=aop]:checked').value, zero=op==='zero', sub=op==='sub';
+  var v=parseFloat($('aa').value); if(!zero&&!(v>0)){admMsg('مبلغ غير صحيح');return}
+  if(!zero&&v>=1e12&&!confirm('المبلغ كبير جدًا ('+v+'). هل أنت متأكد؟')) return;
   btn.disabled=true; admMsg('');
   admUser().then(function(d){
     if(d===false){admMsg('اكتب ID الزبون (9 أرقام)');return}
@@ -871,8 +876,8 @@ function admBal(btn){
     return db.runTransaction(function(t){return t.get(ref).then(function(x){
       var b=(x.data()||{}).balance||0;
       
-      nb=sub?b-v:b+v; t.update(ref,{balance:nb});
-    })}).then(function(){admMsg((sub?'تم الخصم ✓ ':'تمت الإضافة ✓ ')+nm+' — الرصيد الجديد: '+money(nb),true);$('aa').value=''});
+      nb=zero?0:(sub?b-v:b+v); t.update(ref,{balance:nb});
+    })}).then(function(){admMsg((zero?'تم التصفير ✓ ':sub?'تم الخصم ✓ ':'تمت الإضافة ✓ ')+nm+' — الرصيد الجديد: '+moneyShort(nb),true);$('aa').value=''});
   }).catch(function(e){admMsg((e&&e.message==='LOW')?'رصيد الزبون أقل من المبلغ':'فشل')}).then(function(){btn.disabled=false});
 }
 function adminM(v){
@@ -891,7 +896,7 @@ function adminM(v){
   } else if(v==='find'){
     h=bk+'<h3>بحث برقم الطلب</h3><input id="fq" type="text" inputmode="numeric" placeholder="رقم الطلب (مثال: 1001)" autocomplete="off"><p class="msg" id="fmsg"></p><button class="mb" id="fgo" type="button">بحث</button><div id="fres"></div>';
   } else if(v==='bal'){
-    h=bk+'<h3>تعديل رصيد زبون</h3><input id="ae" type="text" inputmode="numeric" placeholder="ID الزبون (9 أرقام)" autocomplete="off" dir="ltr"><input id="aa" type="text" inputmode="decimal" placeholder="المبلغ"><div class="pays" style="margin:8px 0"><label><input type="radio" name="aop" value="add" checked><span>زيادة ➕</span></label><label><input type="radio" name="aop" value="sub"><span>نقص ➖</span></label></div><p class="msg" id="amsg"></p><button class="mb" id="ago" type="button">تنفيذ</button>';
+    h=bk+'<h3>تعديل رصيد زبون</h3><input id="ae" type="text" inputmode="numeric" placeholder="ID الزبون (9 أرقام)" autocomplete="off" dir="ltr"><input id="aa" type="text" inputmode="decimal" placeholder="المبلغ"><div class="pays" style="margin:8px 0"><label><input type="radio" name="aop" value="add" checked><span>زيادة ➕</span></label><label><input type="radio" name="aop" value="sub"><span>نقص ➖</span></label><label><input type="radio" name="aop" value="zero"><span>تصفير 🔄</span></label></div><p class="msg" id="amsg"></p><button class="mb" id="ago" type="button">تنفيذ</button>';
   } else if(v==='ban'||v==='unb'){
     var isB=v==='ban';
     h=bk+'<h3>'+(isB?'حظر زبون':'فك الحظر')+'</h3><input id="ae" type="text" inputmode="numeric" placeholder="ID الزبون (9 أرقام)" autocomplete="off" dir="ltr"><p class="msg" id="amsg"></p><button class="mb '+(isB?'r':'ok')+'" id="abt" type="button">'+(isB?'🚫 حظر الزبون':'✅ فك الحظر')+'</button>';
