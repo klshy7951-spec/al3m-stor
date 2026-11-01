@@ -256,9 +256,24 @@ html{scroll-behavior:smooth}
 .fi b svg{width:13px;height:13px;fill:#fff}
 @keyframes fpop{from{opacity:0;transform:translateY(14px) scale(.8)}to{opacity:1;transform:none}}
 .toast{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:40;max-width:92%;background:#12121b;color:#fff;border-radius:14px;padding:12px 16px;font:700 15px 'Tajawal',sans-serif;box-shadow:0 0 0 1px rgba(243,191,78,.5),0 10px 24px rgba(0,0,0,.7);animation:fpop .25s ease both}
+#boot{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:var(--bg,#06060a);transition:opacity .4s}
+#boot.off{opacity:0;pointer-events:none}
+#boot .orb{position:relative;width:80px;height:80px;animation:bootspin 1.1s linear infinite}
+#boot .orb i{position:absolute;top:50%;left:50%;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4 0,#f3bf4e 45%,#b7791a 100%);box-shadow:0 0 16px rgba(243,191,78,.65)}
+#boot .orb i:nth-child(1){transform:translateX(-26px)}
+#boot .orb i:nth-child(2){transform:translateX(26px)}
+@keyframes bootspin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+<div id="boot" aria-hidden="true"><div class="orb"><i></i><i></i></div></div>
+<script>
+var bootNeed={load:0,auth:0,prices:0};
+function bootHide(){var b=document.getElementById('boot');if(!b||b.className==='off')return;b.className='off';setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b)},500)}
+function bootStep(k){bootNeed[k]=1;if(bootNeed.load&&bootNeed.auth&&bootNeed.prices)bootHide()}
+window.addEventListener('load',function(){bootStep('load')});
+setTimeout(bootHide,7000);
+</script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
 <symbol id="i-emblem" viewBox="0 0 100 100">
  <defs>
@@ -661,21 +676,46 @@ function newAlert(k, arr){
   seenN[k] = ids;
 }
 
+var cid='', cidSt=0;
+function rndCid(){ return String(Math.floor(100000000+Math.random()*899999999)) }
+function copyTxt(t){ try{ navigator.clipboard.writeText(String(t)).then(function(){toast('تم النسخ ✓')},function(){}) }catch(e){} }
+// يحجز ID للزبون (عشوائي 9 أرقام، أو ثابت للأدمن) ويكتبه بحساب الزبون
+function claimCid(uid,newDoc,fixed){
+  var tries=0;
+  function go(){
+    var c=fixed||rndCid(), b=db.batch(), uref=db.collection('users').doc(uid);
+    b.set(db.collection('ids').doc(c),{uid:uid});
+    if(newDoc){ var o={}; for(var k in newDoc) o[k]=newDoc[k]; o.cid=c; b.set(uref,o) }
+    else b.update(uref,{cid:c});
+    return b.commit().then(function(){return c}).catch(function(e){
+      if(!fixed && ++tries<3 && e && e.code==='permission-denied') return go();
+      throw e;
+    });
+  }
+  return go();
+}
+function ensureCid(d){
+  var want=isAdmin()?'999999999':'';
+  if(d.cid && (!want || d.cid===want)) return;
+  if(cidSt) return; cidSt=1;
+  claimCid(me.uid,null,want).catch(function(){});
+}
 if (fbOK){
   firebase.initializeApp(FB_CONFIG);
-  setTimeout(function(){db.collection('config').doc('prices').get().then(function(s){if(s.exists){PR=s.data();pick=null;if(!$('game').hidden){draw();sum()}}}).catch(function(){})},0);
+  setTimeout(function(){db.collection('config').doc('prices').get().then(function(s){if(s.exists){PR=s.data();pick=null;if(!$('game').hidden){draw();sum()}}}).catch(function(){}).then(function(){bootStep('prices')})},0);
   var auth=firebase.auth(), db=firebase.firestore(), FV=firebase.firestore.FieldValue, offs=[]; db.settings({experimentalAutoDetectLongPolling:true,merge:true});
   auth.onAuthStateChanged(function(u){
-    offs.forEach(function(f){f()}); offs=[]; seenN={o:null,t:null}; lastSt={o:null,t:null}; me=u; bal=0; mine=[]; mineT=[]; pend=[]; pendT=[]; authReady=true; chip();
-    if(!u){ flushQ(); return }
+    offs.forEach(function(f){f()}); offs=[]; seenN={o:null,t:null}; lastSt={o:null,t:null}; me=u; bal=0; cid=''; cidSt=0; mine=[]; mineT=[]; pend=[]; pendT=[]; authReady=true; chip();
+    if(!u){ flushQ(); bootStep('auth'); return }
     setTimeout(flushQ,4000);
-    offs.push(db.collection('users').doc(u.uid).onSnapshot(function(s){var d=s.data()||{};bal=d.balance||0;uname=d.name||"";chip();flushQ()},function(){flushQ()}));
+    offs.push(db.collection('users').doc(u.uid).onSnapshot(function(s){var d=s.data()||{};bal=d.balance||0;uname=d.name||"";cid=d.cid||"";chip();flushQ();bootStep('auth');if(s.exists)ensureCid(d)},function(){flushQ();bootStep('auth')}));
     offs.push(db.collection('orders').where('uid','==',u.uid).onSnapshot(function(q){mine=q.docs.map(function(d){var x=d.data();x.id=d.id;return x}).sort(function(a,b){return (b.createdAt?b.createdAt.seconds:9e9)-(a.createdAt?a.createdAt.seconds:9e9)});notifyChg('o',mine);refO()}));
     offs.push(db.collection('topups').where('uid','==',u.uid).onSnapshot(function(q){mineT=q.docs.map(function(d){var x=d.data();x.id=d.id;return x}).sort(function(a,b){return (b.createdAt?b.createdAt.seconds:9e9)-(a.createdAt?a.createdAt.seconds:9e9)});notifyChg('t',mineT);refO()}));
     if(isAdmin()) offs.push(db.collection('orders').where('status','==','pending').onSnapshot(function(q){pend=q.docs.map(function(d){var x=d.data();x.id=d.id;return x});newAlert('o',pend);chip();if(!$('modal').hidden&&$('mbody').dataset.v==='admin')admRefresh()}));
     if(isAdmin()) offs.push(db.collection('topups').where('status','==','pending').onSnapshot(function(q){pendT=q.docs.map(function(d){var x=d.data();x.id=d.id;return x});newAlert('t',pendT);chip();if(!$('modal').hidden&&$('mbody').dataset.v==='admin')admRefresh()}));
   });
 }
+if(!fbOK){bootStep('auth');bootStep('prices')}
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);try{if(navigator.vibrate)navigator.vibrate(150)}catch(e){}setTimeout(function(){d.remove()},7000)}
 function notifyChg(k,arr){var cur={};arr.forEach(function(o){cur[o.id]=o.status});
   if(lastSt[k]){arr.forEach(function(o){var was=lastSt[k][o.id];if(was&&was!==o.status){
@@ -711,7 +751,7 @@ function signUpM(msg){
     if(p.length<6){$('lmsg').textContent='كلمة المرور يجب أن تكون 6 أحرف أو أكثر';return}
     if(p!==$('lp2').value){$('lmsg').textContent='كلمتا المرور غير متطابقتين';return}
     b.disabled=true;b.textContent='جاري إنشاء الحساب...';$('lmsg').textContent='';
-    auth.createUserWithEmailAndPassword(em,p).then(function(c){return db.collection('users').doc(c.user.uid).set({name:'زبون',email:c.user.email,balance:0})}).then(closeM).catch(function(e){b.disabled=false;b.textContent='إنشاء حساب';$('lmsg').textContent=(e&&e.code==='auth/email-already-in-use')?'الإيميل مستخدم':(e&&e.code==='auth/weak-password')?'كلمة المرور ضعيفة':(e&&e.code==='auth/invalid-email')?'الإيميل غير صحيح':'تعذّر إنشاء الحساب، حاول مرة أخرى'})}
+    auth.createUserWithEmailAndPassword(em,p).then(function(c){var nd={name:'زبون',email:c.user.email,balance:0};return claimCid(c.user.uid,nd,'').catch(function(){return db.collection('users').doc(c.user.uid).set(nd)})}).then(closeM).catch(function(e){b.disabled=false;b.textContent='إنشاء حساب';$('lmsg').textContent=(e&&e.code==='auth/email-already-in-use')?'الإيميل مستخدم':(e&&e.code==='auth/weak-password')?'كلمة المرور ضعيفة':(e&&e.code==='auth/invalid-email')?'الإيميل غير صحيح':'تعذّر إنشاء الحساب، حاول مرة أخرى'})}
   $('lsu').onclick=go; $('lp2').onkeydown=function(e){if(e.key==='Enter')go()};
 }
 var FAQ=[["كيف أطلب؟","سجّل دخولك، اختر اللعبة والباقة، اكتب الـ ID، واضغط اطلب. بيُخصم السعر من رصيدك."],
@@ -722,25 +762,39 @@ var FAQ=[["كيف أطلب؟","سجّل دخولك، اختر اللعبة وا�
 function faqM(){showM('<h3>الأسئلة والشروط</h3>'+FAQ.map(function(f){return '<div class="row"><b>'+esc(f[0])+'</b><small>'+esc(f[1])+'</small></div>'}).join("")+'<button class="mb" type="button" onclick="closeM()">حسنًا</button>')}
 $('faqLink').onclick=faqM;
 function acctM(){
-  var h='<h3>'+esc(uname||'حسابي')+'</h3><p style="margin:0 0 8px;color:#9c9cb0">'+esc(me.email)+'<br>الرصيد: <b>'+money(bal)+'</b></p>';
+  var h='<h3>'+esc(uname||'حسابي')+'</h3><p style="margin:0 0 8px;color:#9c9cb0">'+esc(me.email)+'<br>الرصيد: <b>'+money(bal)+'</b>'+(cid?'<br>ID حسابك: <b dir="ltr" id="mycid" style="cursor:pointer">'+esc(cid)+'</b> <small>(اضغط للنسخ)</small>':'')+'</p>';
   h+='<button class="mb g" id="faq" type="button">❓ الأسئلة والشروط</button><button class="mb g" id="lo" type="button">تسجيل الخروج</button><h3 style="margin-top:14px;font-size:18px">طلباتي</h3>';
   h+=mine.length?mine.slice(0,15).map(function(o){return '<div class="row"><b>'+(o.no?'#'+esc(o.no)+' · ':'')+esc(o.game)+' — '+esc(o.pkg)+'</b><small>'+money(o.price)+' · '+(ST[o.status]||"")+'</small></div>'}).join(""):'<p class="msg" style="color:#9c9cb0">لا يوجد طلبات.</p>';
-  showM(h); $('lo').onclick=function(){auth.signOut();closeM()}; $('faq').onclick=faqM;
+  showM(h); $('lo').onclick=function(){auth.signOut();closeM()}; $('faq').onclick=faqM; if($('mycid')) $('mycid').onclick=function(){copyTxt(cid)};
 }
 var admV='hub';
 function admRefresh(){ if(admV==='hub'||admV==='ords'||admV==='tops'){ var bx=$('mbody').parentNode, sc=bx.scrollTop; adminM(admV); bx.scrollTop=sc } }
 function admMsg(t,ok){ var m=$('amsg'); if(!m) return; m.style.color=ok?'#3cea82':''; m.textContent=t||'' }
-function admEmail(){ return $('ae').value.trim().toLowerCase() }
+function admWho(){ return $('ae').value.trim().replace(/[\u0660-\u0669]/g,function(c){return c.charCodeAt(0)-1632}).replace(/[\u06F0-\u06F9]/g,function(c){return c.charCodeAt(0)-1776}).replace(/\s/g,'') }
+function admUser(){
+  var v=admWho(); if(!v) return Promise.resolve(false);
+  if(!/^\d{9}$/.test(v)) return Promise.resolve(null);
+  return db.collection('users').where('cid','==',v).get().then(function(q){ return q.empty?null:q.docs[0] });
+}
+var cidCache={};
+function admFillCids(){
+  [].forEach.call($('mbody').querySelectorAll('[data-cu]'),function(el){
+    var u=el.getAttribute('data-cu');
+    function put(c){ cidCache[u]=c; el.textContent=c; if(c!=='—'){ el.style.cursor='pointer'; el.onclick=function(){copyTxt(c)} } }
+    if(cidCache[u]){ put(cidCache[u]); return }
+    db.collection('users').doc(u).get().then(function(sn){ put((sn.data()||{}).cid||'—') }).catch(function(){ el.textContent='—' });
+  });
+}
 function admOrdCard(o){
   var d=(o.createdAt&&o.createdAt.seconds)?new Date(o.createdAt.seconds*1000).toLocaleString('en-GB',{hour12:false}):'',
       det=o.ltype?'<small>ربط: <b>'+esc(o.ltype)+'</b> · '+esc(o.lacc)+'</small><small>واتساب: '+esc(o.lwa)+'</small>'+(o.status==='pending'?'<small>كلمة السر: <b dir="ltr">'+esc(o.lpw||'—')+'</b></small>':''):'<small>ID اللاعب: <b>'+esc(o.pid||'—')+'</b></small>';
-  return '<div class="row"><b>'+(o.no?'#'+esc(o.no)+' · ':'')+esc(o.game)+' — '+esc(o.pkg)+'</b><small>'+esc(o.name)+' · '+esc(o.email)+'</small>'+det+'<small>'+money(o.price)+(d?' · <span dir="ltr">'+d+'</span>':'')+'</small>'
+  return '<div class="row"><b>'+(o.no?'#'+esc(o.no)+' · ':'')+esc(o.game)+' — '+esc(o.pkg)+'</b><small>'+esc(o.name)+' · '+esc(o.email)+'</small><small>ID الزبون: <b dir="ltr" data-cu="'+esc(o.uid)+'">…</b></small>'+det+'<small>'+money(o.price)+(d?' · <span dir="ltr">'+d+'</span>':'')+'</small>'
     +(o.status==='pending'
       ?'<div class="bt"><button class="mb ok" data-a="acc" data-i="'+o.id+'" type="button">قبول</button><button class="mb r" data-a="rej" data-i="'+o.id+'" type="button">رفض + إرجاع الرصيد</button></div>'
       :bdg(o.status,ST)+(o.note?'<small>السبب: '+esc(o.note)+'</small>':''))+'</div>';
 }
 function admTopCard(o){
-  return '<div class="row"><b>شحن '+mm(o.amount,o.cur)+(o.cur==='USD'?' = '+money(Math.round(o.amount*USD_RATE)):'')+'</b><small>'+esc(o.name)+' · '+esc(o.email)+'</small><small>'+esc(o.method)+' · رقم العملية: '+esc(o.txn)+'</small><div class="bt"><button class="mb ok" data-t="acc" data-i="'+o.id+'" type="button">تأكيد وإضافة الرصيد</button><button class="mb r" data-t="rej" data-i="'+o.id+'" type="button">رفض</button></div></div>';
+  return '<div class="row"><b>شحن '+mm(o.amount,o.cur)+(o.cur==='USD'?' = '+money(Math.round(o.amount*USD_RATE)):'')+'</b><small>'+esc(o.name)+' · '+esc(o.email)+'</small><small>ID الزبون: <b dir="ltr" data-cu="'+esc(o.uid)+'">…</b></small><small>'+esc(o.method)+' · رقم العملية: '+esc(o.txn)+'</small><div class="bt"><button class="mb ok" data-t="acc" data-i="'+o.id+'" type="button">تأكيد وإضافة الرصيد</button><button class="mb r" data-t="rej" data-i="'+o.id+'" type="button">رفض</button></div></div>';
 }
 function admBindAct(after){
   [].forEach.call($('mbody').querySelectorAll('button[data-t]'),function(b){b.onclick=function(){var rj=b.dataset.t==='rej',n='';if(rj){n=prompt('سبب الرفض (يظهر للزبون، اختياري):','');if(n===null)return}b.disabled=true;decideT(b.dataset.i,rj,n)}});
@@ -763,30 +817,32 @@ function admFind(){
     res.forEach(function(sn){sn.docs.forEach(function(d){if(!seen[d.id]){seen[d.id]=1;var x=d.data();x.id=d.id;arr.push(x)}})});
     if(!arr.length){fm('ما في طلب بهالرقم',true);return}
     fm('');
-    $('fres').innerHTML=arr.map(admOrdCard).join('');
+    $('fres').innerHTML=arr.map(admOrdCard).join(''); admFillCids();
     admBindAct(admFind);
   }).catch(function(){ if(admV==='find') fm('فشل البحث (تحقق من قواعد Firebase)',true) });
 }
 function admBan(v){
-  var em=admEmail(); if(!em){admMsg('اكتب إيميل الزبون');return}
-  db.collection('users').where('email','==',em).get().then(function(q){
-    if(q.empty){admMsg('ما في حساب بهالإيميل');return}
-    return q.docs[0].ref.update({banned:v}).then(function(){admMsg(v?'تم حظر الزبون 🚫':'تم فك الحظر ✓',true)});
+  admUser().then(function(d){
+    if(d===false){admMsg('اكتب ID الزبون (9 أرقام)');return}
+    if(!d){admMsg('ما في حساب بهالـ ID');return}
+    var u=d.data();
+    if(v&&me&&u.email&&u.email.toLowerCase()===me.email.toLowerCase()){admMsg('ما بتقدر تحظر حساب الأدمن');return}
+    return d.ref.update({banned:v}).then(function(){admMsg((v?'تم حظر ':'تم فك الحظر عن ')+(u.name||'')+' ('+u.cid+') '+(v?'🚫':'✓'),true)});
   }).catch(function(){admMsg('فشل')});
 }
 function admBal(btn){
   var v=parseFloat($('aa').value); if(!(v>0)){admMsg('مبلغ غير صحيح');return}
-  var sub=document.querySelector('input[name=aop]:checked').value==='sub', em=admEmail();
-  if(!em){admMsg('اكتب إيميل الزبون');return}
+  var sub=document.querySelector('input[name=aop]:checked').value==='sub';
   btn.disabled=true; admMsg('');
-  db.collection('users').where('email','==',em).get().then(function(q){
-    if(q.empty){admMsg('ما في حساب بهالإيميل');return}
-    var ref=q.docs[0].ref, nb=0;
-    return db.runTransaction(function(t){return t.get(ref).then(function(d){
-      var b=(d.data()||{}).balance||0;
+  admUser().then(function(d){
+    if(d===false){admMsg('اكتب ID الزبون (9 أرقام)');return}
+    if(!d){admMsg('ما في حساب بهالـ ID');return}
+    var ref=d.ref, nb=0, nm=(d.data().name||'')+' ('+d.data().cid+')';
+    return db.runTransaction(function(t){return t.get(ref).then(function(x){
+      var b=(x.data()||{}).balance||0;
       if(sub&&b<v) throw new Error('LOW');
       nb=sub?b-v:b+v; t.update(ref,{balance:nb});
-    })}).then(function(){admMsg((sub?'تم الخصم ✓':'تمت الإضافة ✓')+' — الرصيد الجديد: '+money(nb),true);$('aa').value=''});
+    })}).then(function(){admMsg((sub?'تم الخصم ✓ ':'تمت الإضافة ✓ ')+nm+' — الرصيد الجديد: '+money(nb),true);$('aa').value=''});
   }).catch(function(e){admMsg((e&&e.message==='LOW')?'رصيد الزبون أقل من المبلغ':'فشل')}).then(function(){btn.disabled=false});
 }
 function adminM(v){
@@ -805,14 +861,14 @@ function adminM(v){
   } else if(v==='find'){
     h=bk+'<h3>بحث برقم الطلب</h3><input id="fq" type="text" inputmode="numeric" placeholder="رقم الطلب (مثال: 1001)" autocomplete="off"><p class="msg" id="fmsg"></p><button class="mb" id="fgo" type="button">بحث</button><div id="fres"></div>';
   } else if(v==='bal'){
-    h=bk+'<h3>تعديل رصيد زبون</h3><input id="ae" type="email" placeholder="إيميل الزبون" autocomplete="off"><input id="aa" type="text" inputmode="decimal" placeholder="المبلغ"><div class="pays" style="margin:8px 0"><label><input type="radio" name="aop" value="add" checked><span>زيادة ➕</span></label><label><input type="radio" name="aop" value="sub"><span>نقص ➖</span></label></div><p class="msg" id="amsg"></p><button class="mb" id="ago" type="button">تنفيذ</button>';
+    h=bk+'<h3>تعديل رصيد زبون</h3><input id="ae" type="text" inputmode="numeric" placeholder="ID الزبون (9 أرقام)" autocomplete="off" dir="ltr"><input id="aa" type="text" inputmode="decimal" placeholder="المبلغ"><div class="pays" style="margin:8px 0"><label><input type="radio" name="aop" value="add" checked><span>زيادة ➕</span></label><label><input type="radio" name="aop" value="sub"><span>نقص ➖</span></label></div><p class="msg" id="amsg"></p><button class="mb" id="ago" type="button">تنفيذ</button>';
   } else if(v==='ban'||v==='unb'){
     var isB=v==='ban';
-    h=bk+'<h3>'+(isB?'حظر زبون':'فك الحظر')+'</h3><input id="ae" type="email" placeholder="إيميل الزبون" autocomplete="off"><p class="msg" id="amsg"></p><button class="mb '+(isB?'r':'ok')+'" id="abt" type="button">'+(isB?'🚫 حظر الزبون':'✅ فك الحظر')+'</button>';
+    h=bk+'<h3>'+(isB?'حظر زبون':'فك الحظر')+'</h3><input id="ae" type="text" inputmode="numeric" placeholder="ID الزبون (9 أرقام)" autocomplete="off" dir="ltr"><p class="msg" id="amsg"></p><button class="mb '+(isB?'r':'ok')+'" id="abt" type="button">'+(isB?'🚫 حظر الزبون':'✅ فك الحظر')+'</button>';
   } else if(v==='prc'){
     h=bk+'<h3>تثبيت الأسعار</h3><p style="margin:0 0 8px;color:#9c9cb0">يحفظ أسعار كل الباقات الحالية في قاعدة البيانات.</p><button class="mb" id="pfix" type="button">💲 تثبيت الأسعار (حماية)</button>';
   }
-  showM(h); $('mbody').dataset.v='admin';
+  showM(h); $('mbody').dataset.v='admin'; if(v==='ords'||v==='tops') admFillCids();
   if($('abk')) $('abk').onclick=function(){adminM('hub')};
   if(v==='hub'){
     [].forEach.call($('mbody').querySelectorAll('button[data-k]'),function(t){t.onclick=function(){
