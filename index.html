@@ -186,6 +186,31 @@ html{scroll-behavior:smooth}
 .row small{color:var(--muted);display:block}.row .bt{display:flex;gap:8px}.row .bt .mb{margin:6px 0 0}
 .msg{color:#ff8a8a;font-size:14px;min-height:20px;margin:4px 0}
 
+
+/* حقل كلمة المرور + زر العين */
+.mbox .pw{position:relative;margin:0 0 10px}
+.mbox .pw input{margin:0;padding-left:46px}
+.eye{position:absolute;left:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:none;color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0}
+.eye svg{width:22px;height:22px;fill:currentColor}
+.eye.on{color:var(--gold-l)}
+.bk{background:none;border:0;color:var(--muted);font:700 14px 'Tajawal',sans-serif;cursor:pointer;padding:0 0 8px}
+
+
+/* زر طلباتي: أكبر وأوضح عند الضغط */
+.nav button.on i{width:58px;height:58px;background:linear-gradient(#ffe6a6,#f3bf4e);box-shadow:0 0 0 3px rgba(243,191,78,.35),0 6px 14px rgba(0,0,0,.6);transform:translateY(-14px) scale(1.05)}
+.nav button.on svg{fill:#3a2203;width:30px;height:30px}
+.nav button.on span{color:var(--gold-l);font-size:13px;transform:translateY(-12px)}
+#modal:has(#mbody[data-v="orders"]) .mbox{max-width:540px;max-height:92vh;padding:28px 18px}
+#modal:has(#mbody[data-v="orders"]) .mbox h3{font-size:28px;color:var(--gold-l);margin-bottom:16px}
+.ord{background:#0a0a11;border-radius:16px;padding:14px 16px;margin:0 0 12px;box-shadow:0 0 0 1px #2a2a3a}
+.ord b{display:block;font-size:19px;line-height:1.5}
+.ord small{display:block;color:var(--muted);font-size:15px;margin-top:3px}
+.ord .pr{color:var(--gold-l);font:800 18px 'Tajawal',sans-serif;margin-top:6px}
+.badge{display:inline-block;margin-top:10px;padding:6px 14px;border-radius:99px;font:800 15px 'Tajawal',sans-serif}
+.badge.ok{background:rgba(60,234,130,.15);color:#3cea82}
+.badge.no{background:rgba(255,138,138,.15);color:#ff8a8a}
+.badge.wt{background:rgba(243,191,78,.15);color:#f3bf4e}
+
 /* الشريط السفلي */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;background:#000;display:flex;justify-content:space-around;align-items:flex-end;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(243,191,78,.25)}
 .nav button{background:none;border:0;color:#fff;display:flex;flex-direction:column;align-items:center;gap:2px;font:700 11px 'Tajawal',sans-serif;cursor:pointer;padding:0;min-width:70px;-webkit-tap-highlight-color:transparent}
@@ -321,6 +346,7 @@ html{scroll-behavior:smooth}
 <button id="nOrd" type="button"><i><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg></i><span>طلباتي</span></button>
 <button id="nHome" class="on" type="button"><i><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></i><span>الرئيسية</span></button>
 <button id="nTop" type="button"><i><svg viewBox="0 0 24 24"><path d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9zm-9-2h10V8H12v8zm4-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg></i><span>شحن الرصيد</span></button>
+<button id="nAcc" type="button"><i><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg></i><span>حسابي</span></button>
 </nav>
 <a class="fab" id="fab" href="#" target="_blank" rel="noopener" aria-label="تواصل عبر واتساب">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v13H9l-6 4z" fill="#fff"/></svg>
@@ -582,13 +608,32 @@ if (fbOK){
 }
 function needFb(){ if(!fbOK){showM('<h3>غير مفعّل</h3><p>أضف إعدادات Firebase في الكود أولاً.</p>');return true} return false }
 
+var EYE='<svg viewBox="0 0 24 24"><path d="M12 5C7 5 2.7 8.1 1 12c1.7 3.9 6 7 11 7s9.3-3.1 11-7c-1.7-3.9-6-7-11-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>',
+    EYEX='<svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5c0 .6-.1 1.1-.3 1.6l2.9 2.9A11.8 11.8 0 0 0 23 12c-1.7-3.9-6-7-11-7-1.4 0-2.7.2-3.9.7l2.2 2.2c.5-.2 1.1-.3 1.7-.3zM2 4.3l2.3 2.3A11.7 11.7 0 0 0 1 12c1.7 3.9 6 7 11 7 1.5 0 3-.3 4.3-.8l2.9 2.9 1.4-1.4L3.4 2.9 2 4.3zm5.5 5.5 1.5 1.5a3 3 0 0 0 3.7 3.7l1.5 1.5A5 5 0 0 1 7.5 9.8z"/></svg>';
+function pwField(id,ph,ac){return '<div class="pw"><input id="'+id+'" type="password" placeholder="'+ph+'" autocomplete="'+ac+'"><button class="eye" type="button" data-for="'+id+'" aria-label="إظهار/إخفاء كلمة المرور">'+EYE+'</button></div>'}
+function bindEyes(){Array.prototype.forEach.call(document.querySelectorAll('#mbody .eye'),function(b){b.onclick=function(){var i=$(b.dataset.for),show=i.type==='password';i.type=show?'text':'password';b.innerHTML=show?EYEX:EYE;b.classList.toggle('on',show)}})}
 function loginM(msg){
-  showM('<h3>تسجيل الدخول</h3><input id="lm" type="email" placeholder="الإيميل" autocomplete="email"><input id="lp" type="password" placeholder="كلمة المرور (6 أحرف+)" autocomplete="current-password"><input id="ln" type="text" placeholder="الاسم (للحساب الجديد فقط)"><p class="msg" id="lmsg">'+esc(msg||"")+'</p><button class="mb" id="lgo" type="button">دخول</button><button class="mb g" id="lsu" type="button">إنشاء حساب جديد</button>');
+  showM('<h3>تسجيل الدخول</h3><p class="msg" id="lmsg">'+esc(msg||"")+'</p><button class="mb" id="lHave" type="button">لدي حساب</button><button class="mb g" id="lNew" type="button">إنشاء حساب</button>');
   if(!storeOK()) $('lmsg').textContent='تنبيه: متصفحك يمنع حفظ تسجيل الدخول. افتح الموقع مباشرة في Chrome (وليس داخل تطبيق آخر أو وضع التخفي).';
-  function er(e){$('lgo').disabled=$('lsu').disabled=false;$('lgo').textContent='دخول';$('lsu').textContent='إنشاء حساب جديد';$('lmsg').textContent=(e&&e.code==='auth/email-already-in-use')?'الإيميل مستخدم':(e&&e.code==='auth/weak-password')?'كلمة المرور ضعيفة':'تحقق من الإيميل وكلمة المرور'}
-  $('lgo').onclick=function(){this.disabled=$('lsu').disabled=true;this.textContent='جاري الدخول...';auth.signInWithEmailAndPassword($('lm').value.trim(),$('lp').value).then(closeM).catch(er)};
-  $('lsu').onclick=function(){this.disabled=$('lgo').disabled=true;this.textContent='جاري إنشاء الحساب...';var n=$('ln').value.trim()||"زبون",em=$('lm').value.trim();
-    auth.createUserWithEmailAndPassword(em,$('lp').value).then(function(c){return db.collection('users').doc(c.user.uid).set({name:n,email:c.user.email,balance:0})}).then(closeM).catch(er)};
+  $('lHave').onclick=function(){signInM(msg)};
+  $('lNew').onclick=function(){signUpM(msg)};
+}
+function signInM(msg){
+  showM('<button class="bk" id="bk" type="button">← رجوع</button><h3>لدي حساب</h3><input id="lm" type="email" placeholder="الإيميل" autocomplete="email">'+pwField('lp','كلمة المرور','current-password')+'<p class="msg" id="lmsg"></p><button class="mb" id="lgo" type="button">دخول</button>');
+  bindEyes(); $('bk').onclick=function(){loginM(msg)};
+  function go(){var b=$('lgo');b.disabled=true;b.textContent='جاري الدخول...';auth.signInWithEmailAndPassword($('lm').value.trim(),$('lp').value).then(closeM).catch(function(){b.disabled=false;b.textContent='دخول';$('lmsg').textContent='تحقق من الإيميل وكلمة المرور'})}
+  $('lgo').onclick=go; $('lp').onkeydown=function(e){if(e.key==='Enter')go()};
+}
+function signUpM(msg){
+  showM('<button class="bk" id="bk" type="button">← رجوع</button><h3>إنشاء حساب</h3><input id="lm" type="email" placeholder="الإيميل" autocomplete="email">'+pwField('lp','كلمة المرور (6 أحرف+)','new-password')+pwField('lp2','تأكيد كلمة المرور','new-password')+'<p class="msg" id="lmsg"></p><button class="mb" id="lsu" type="button">إنشاء حساب</button>');
+  bindEyes(); $('bk').onclick=function(){loginM(msg)};
+  function go(){var b=$('lsu'),em=$('lm').value.trim(),p=$('lp').value;
+    if(!em){$('lmsg').textContent='اكتب الإيميل';return}
+    if(p.length<6){$('lmsg').textContent='كلمة المرور يجب أن تكون 6 أحرف أو أكثر';return}
+    if(p!==$('lp2').value){$('lmsg').textContent='كلمتا المرور غير متطابقتين';return}
+    b.disabled=true;b.textContent='جاري إنشاء الحساب...';$('lmsg').textContent='';
+    auth.createUserWithEmailAndPassword(em,p).then(function(c){return db.collection('users').doc(c.user.uid).set({name:'زبون',email:c.user.email,balance:0})}).then(closeM).catch(function(e){b.disabled=false;b.textContent='إنشاء حساب';$('lmsg').textContent=(e&&e.code==='auth/email-already-in-use')?'الإيميل مستخدم':(e&&e.code==='auth/weak-password')?'كلمة المرور ضعيفة':(e&&e.code==='auth/invalid-email')?'الإيميل غير صحيح':'تعذّر إنشاء الحساب، حاول مرة أخرى'})}
+  $('lsu').onclick=go; $('lp2').onkeydown=function(e){if(e.key==='Enter')go()};
 }
 function acctM(){
   var h='<h3>'+esc(uname||'حسابي')+'</h3><p style="margin:0 0 8px;color:#9c9cb0">'+esc(me.email)+'<br>الرصيد: <b>'+money(bal)+'</b></p>';
@@ -671,15 +716,17 @@ function invM(k,v,c){
   };
 }
 $('admBtn').onclick=function(){ if(isAdmin()) adminM() };
-function setNav(id){['nOrd','nHome','nTop'].forEach(function(i){$(i).classList.toggle('on',i===id)})}
+function setNav(id){['nOrd','nHome','nTop','nAcc'].forEach(function(i){$(i).classList.toggle('on',i===id)})}
 function refO(){if(!$('modal').hidden&&$('mbody').dataset.v==='orders')ordersM()}
+function bdg(st,map){var c=(st==='accepted'||st==='approved')?'ok':st==='rejected'?'no':'wt';return '<span class="badge '+c+'">'+(map[st]||"")+'</span>'}
 function ordersM(){
   var h='<h3>طلباتي</h3>';
-  h+=mine.length?mine.slice(0,30).map(function(o){return '<div class="row"><b>'+esc(o.game)+' — '+esc(o.pkg)+'</b>'+(o.ltype?'<small>ربط: '+esc(o.ltype)+'</small>':(o.pid?'<small>ID: '+esc(o.pid)+'</small>':''))+'<small>'+money(o.price)+'</small><small style="color:'+(o.status==='accepted'?'#3cea82':o.status==='rejected'?'#ff8a8a':'#f3bf4e')+'">'+(ST[o.status]||"")+'</small></div>'}).join(""):'<p class="msg" style="color:#9c9cb0">لا يوجد طلبات بعد.</p>';
-  if(mineT.length) h+='<h3 style="margin-top:14px;font-size:18px">طلبات الشحن</h3>'+mineT.slice(0,20).map(function(o){return '<div class="row"><b>'+mm(o.amount,o.cur)+' — '+esc(o.method)+'</b><small>'+(STT[o.status]||"")+'</small></div>'}).join("");
+  h+=mine.length?mine.slice(0,30).map(function(o){return '<div class="ord"><b>'+esc(o.game)+' — '+esc(o.pkg)+'</b>'+(o.ltype?'<small>ربط: '+esc(o.ltype)+'</small>':(o.pid?'<small>ID: '+esc(o.pid)+'</small>':''))+'<div class="pr">'+money(o.price)+'</div>'+bdg(o.status,ST)+'</div>'}).join(""):'<p class="msg" style="color:#9c9cb0;font-size:17px">لا يوجد طلبات بعد.</p>';
+  if(mineT.length) h+='<h3 style="margin-top:20px;font-size:22px">طلبات الشحن</h3>'+mineT.slice(0,20).map(function(o){return '<div class="ord"><b>'+mm(o.amount,o.cur)+' — '+esc(o.method)+'</b>'+bdg(o.status,STT)+'</div>'}).join("");
   showM(h); $('mbody').dataset.v='orders'; setNav('nOrd');
 }
 $('nHome').onclick=function(){closeM();['list','game','social'].forEach(function(i){$(i).hidden=true});$('home').hidden=false;window.scrollTo(0,0)};
+$('nAcc').onclick=function(){setNav('nAcc');if(needFb())return;whenAuth(function(){me?acctM():loginM()})};
 $('nOrd').onclick=function(){setNav('nOrd');if(needFb())return;whenAuth(function(){me?ordersM():loginM('سجّل دخولك لعرض طلباتك')})};
 $('nTop').onclick=function(){setNav('nTop');if(needFb())return;whenAuth(function(){me?topM():loginM('سجّل دخولك أولاً')})};
 
