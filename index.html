@@ -270,6 +270,12 @@ html{scroll-behavior:smooth}
 html,body{overflow-x:hidden}
 .bar,.acts,.acct{min-width:0}
 .bal{max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+#ban{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(6,6,10,.97)}
+#ban[hidden]{display:none}
+#ban .bc{width:100%;max-width:380px;text-align:center;padding:34px 22px;border-radius:28px;background:#12121b;box-shadow:0 0 0 2px #ff4d4d,0 0 40px rgba(255,77,77,.35)}
+#ban .bi{font-size:120px;line-height:1;filter:drop-shadow(0 0 18px rgba(255,77,77,.6))}
+#ban h2{margin:10px 0 6px;font:800 32px 'Tajawal',sans-serif;color:#ff5b5b}
+#ban p{margin:0 0 18px;color:#b9b9c9;font:600 16px/1.6 'Tajawal',sans-serif}
 </style>
 </head>
 <body>
@@ -395,6 +401,7 @@ setTimeout(bootHide,7000);
   </section>
 </div>
 
+<div id="ban" hidden><div class="bc"><div class="bi">🚫</div><h2>حسابك محظور</h2><p>لا يمكنك استخدام أي خدمة. تواصل مع الدعم إذا تعتقد أن هذا خطأ.</p><button class="mb" id="banOut" type="button">تسجيل الخروج</button></div></div>
 <div id="modal" hidden><div class="mbox"><button class="mx" type="button" onclick="closeM()" aria-label="إغلاق">✕</button><div id="mbody"></div></div></div>
 <nav class="nav" aria-label="التنقل">
 <button id="nOrd" type="button"><i><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg></i><span>طلباتي</span></button>
@@ -713,10 +720,10 @@ if (fbOK){
   setTimeout(function(){db.collection('config').doc('prices').get().then(function(s){if(s.exists){PR=s.data();pick=null;if(!$('game').hidden){draw();sum()}}}).catch(function(){}).then(function(){bootStep('prices')})},0);
   var auth=firebase.auth(), db=firebase.firestore(), FV=firebase.firestore.FieldValue, offs=[]; db.settings({experimentalAutoDetectLongPolling:true,merge:true});
   auth.onAuthStateChanged(function(u){
-    offs.forEach(function(f){f()}); offs=[]; seenN={o:null,t:null}; lastSt={o:null,t:null}; me=u; bal=0; cid=''; cidSt=0; mine=[]; mineT=[]; pend=[]; pendT=[]; authReady=true; chip();
+    offs.forEach(function(f){f()}); offs=[]; seenN={o:null,t:null}; lastSt={o:null,t:null}; me=u; banned=false; banUI(); bal=0; cid=''; cidSt=0; mine=[]; mineT=[]; pend=[]; pendT=[]; authReady=true; chip();
     if(!u){ flushQ(); bootStep('auth'); return }
     setTimeout(flushQ,4000);
-    offs.push(db.collection('users').doc(u.uid).onSnapshot(function(s){var d=s.data()||{};bal=d.balance||0;uname=d.name||"";cid=d.cid||"";avatar=d.avatar||"";chip();flushQ();bootStep('auth');if(s.exists)ensureCid(d)},function(){flushQ();bootStep('auth')}));
+    offs.push(db.collection('users').doc(u.uid).onSnapshot(function(s){var d=s.data()||{};bal=d.balance||0;banned=!!d.banned;banUI();uname=d.name||"";cid=d.cid||"";avatar=d.avatar||"";chip();flushQ();bootStep('auth');if(s.exists)ensureCid(d)},function(){flushQ();bootStep('auth')}));
     offs.push(db.collection('orders').where('uid','==',u.uid).onSnapshot(function(q){mine=q.docs.map(function(d){var x=d.data();x.id=d.id;return x}).sort(function(a,b){return (b.createdAt?b.createdAt.seconds:9e9)-(a.createdAt?a.createdAt.seconds:9e9)});notifyChg('o',mine);refO()}));
     offs.push(db.collection('topups').where('uid','==',u.uid).onSnapshot(function(q){mineT=q.docs.map(function(d){var x=d.data();x.id=d.id;return x}).sort(function(a,b){return (b.createdAt?b.createdAt.seconds:9e9)-(a.createdAt?a.createdAt.seconds:9e9)});notifyChg('t',mineT);refO()}));
     if(isAdmin()) offs.push(db.collection('orders').where('status','==','pending').onSnapshot(function(q){pend=q.docs.map(function(d){var x=d.data();x.id=d.id;return x});newAlert('o',pend);chip();if(!$('modal').hidden&&$('mbody').dataset.v==='admin')admRefresh()}));
@@ -737,6 +744,10 @@ var EYE='<svg viewBox="0 0 24 24"><path d="M12 5C7 5 2.7 8.1 1 12c1.7 3.9 6 7 11
     EYEX='<svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5c0 .6-.1 1.1-.3 1.6l2.9 2.9A11.8 11.8 0 0 0 23 12c-1.7-3.9-6-7-11-7-1.4 0-2.7.2-3.9.7l2.2 2.2c.5-.2 1.1-.3 1.7-.3zM2 4.3l2.3 2.3A11.7 11.7 0 0 0 1 12c1.7 3.9 6 7 11 7 1.5 0 3-.3 4.3-.8l2.9 2.9 1.4-1.4L3.4 2.9 2 4.3zm5.5 5.5 1.5 1.5a3 3 0 0 0 3.7 3.7l1.5 1.5A5 5 0 0 1 7.5 9.8z"/></svg>';
 function pwField(id,ph,ac){return '<div class="pw"><input id="'+id+'" type="password" placeholder="'+ph+'" autocomplete="'+ac+'"><button class="eye" type="button" data-for="'+id+'" aria-label="إظهار/إخفاء كلمة المرور">'+EYE+'</button></div>'}
 function bindEyes(){Array.prototype.forEach.call(document.querySelectorAll('#mbody .eye'),function(b){b.onclick=function(){var i=$(b.dataset.for),show=i.type==='password';i.type=show?'text':'password';b.innerHTML=show?EYEX:EYE;b.classList.toggle('on',show)}})}
+var banned=false;
+function banUI(){ var b=$('ban'); if(!b) return; b.hidden=!banned; if(banned){ $('modal').hidden=true; document.body.style.overflow='hidden' } else document.body.style.overflow='' }
+var GMAIL_RE=/^[^\s@]+@gmail\.com$/i, PASS_RE=/^[A-Za-z0-9]{6,}$/;
+var PASS_MSG='كلمة المرور: 6 أحرف أو أرقام على الأقل، إنجليزي فقط بدون رموز أو مسافات';
 function loginM(msg){
   showM('<h3>تسجيل الدخول</h3><p class="msg" id="lmsg">'+esc(msg||"")+'</p><button class="mb" id="lHave" type="button">لدي حساب</button><button class="mb g" id="lNew" type="button">إنشاء حساب</button>');
   if(!storeOK()) $('lmsg').textContent='تنبيه: متصفحك يمنع حفظ تسجيل الدخول. افتح الموقع مباشرة في Chrome (وليس داخل تطبيق آخر أو وضع التخفي).';
@@ -747,16 +758,30 @@ function signInM(msg){
   showM('<button class="bk" id="bk" type="button">← رجوع</button><h3>لدي حساب</h3><input id="lm" type="email" placeholder="الإيميل" autocomplete="email">'+pwField('lp','كلمة المرور','current-password')+'<p class="msg" id="lmsg"></p><button class="mb" id="lgo" type="button">دخول</button><button class="bk" id="fg" type="button">نسيت كلمة المرور؟</button>');
   bindEyes(); $('bk').onclick=function(){loginM(msg)};
   $('fg').onclick=function(){var em=$('lm').value.trim();if(!em){$('lmsg').textContent='اكتب إيميلك أولاً ثم اضغط نسيت كلمة المرور';return}
-    auth.sendPasswordResetEmail(em).then(function(){$('lmsg').style.color='#3cea82';$('lmsg').textContent='أرسلنا رابط تغيير كلمة المرور لإيميلك ✓ (تفقّد Spam)'}).catch(function(){$('lmsg').style.color='';$('lmsg').textContent='تحقق من الإيميل'})};
+    resetM(em,msg)};
   function go(){var b=$('lgo');b.disabled=true;b.textContent='جاري الدخول...';auth.signInWithEmailAndPassword($('lm').value.trim(),$('lp').value).then(closeM).catch(function(){b.disabled=false;b.textContent='دخول';$('lmsg').textContent='تحقق من الإيميل وكلمة المرور'})}
   $('lgo').onclick=go; $('lp').onkeydown=function(e){if(e.key==='Enter')go()};
 }
+function resetM(em,msg){
+  showM('<button class="bk" id="bk" type="button">← رجوع</button><h3>نسيت كلمة المرور</h3><p id="rinfo" style="color:#cfcfe0;font-size:15px;line-height:1.6;margin:0 0 10px">جاري الإرسال...</p><input id="rc" type="text" placeholder="الصق الرمز أو الرابط من الإيميل" autocomplete="off" dir="ltr">'+pwField('rp','كلمة المرور الجديدة (6 أحرف/أرقام+)','new-password')+'<p class="msg" id="lmsg"></p><button class="mb" id="rgo" type="button">تغيير كلمة المرور</button><button class="bk" id="rre" type="button">إعادة إرسال الرمز</button>');
+  bindEyes(); $('bk').onclick=function(){signInM(msg)};
+  function send(){ $('rinfo').textContent='جاري الإرسال...'; auth.sendPasswordResetEmail(em).then(function(){$('rinfo').textContent='أرسلنا رسالة إلى '+em+'. افتحها وانسخ الرابط (اضغط مطولاً على الزر ثم نسخ الرابط) والصقه هنا بالضبط كما هو، وتفقّد Spam.'}).catch(function(){$('rinfo').textContent='تعذّر الإرسال، تحقق من الإيميل'}) }
+  send(); $('rre').onclick=send;
+  $('rgo').onclick=function(){
+    var raw=$('rc').value.trim(), m=raw.match(/oobCode=([^&\s]+)/), code=m?decodeURIComponent(m[1]):raw, p=$('rp').value;
+    if(!code){$('lmsg').textContent='الصق الرمز أو الرابط من الإيميل';return}
+    if(!PASS_RE.test(p)){$('lmsg').textContent=PASS_MSG;return}
+    var b=$('rgo'); b.disabled=true; b.textContent='جاري التغيير...';
+    auth.confirmPasswordReset(code,p).then(function(){ showM('<h3>تم ✓</h3><p>تم تغيير كلمة المرور. سجّل دخولك بالكلمة الجديدة.</p><button class="mb" id="rok" type="button">تسجيل الدخول</button>'); $('rok').onclick=function(){signInM(msg)} }).catch(function(){ b.disabled=false; b.textContent='تغيير كلمة المرور'; $('lmsg').textContent='الرمز غير صحيح أو منتهي، أعد الإرسال' });
+  };
+}
 function signUpM(msg){
-  showM('<button class="bk" id="bk" type="button">← رجوع</button><h3>إنشاء حساب</h3><input id="lm" type="email" placeholder="الإيميل" autocomplete="email">'+pwField('lp','كلمة المرور (6 أحرف+)','new-password')+pwField('lp2','تأكيد كلمة المرور','new-password')+'<p class="msg" id="lmsg"></p><button class="mb" id="lsu" type="button">إنشاء حساب</button>');
+  showM('<button class="bk" id="bk" type="button">← رجوع</button><h3>إنشاء حساب</h3><input id="lm" type="email" placeholder="الإيميل" autocomplete="email">'+pwField('lp','كلمة المرور (6 أحرف/أرقام+)','new-password')+pwField('lp2','تأكيد كلمة المرور','new-password')+'<p style="color:#9c9cb0;font-size:13px;margin:0 0 6px">الإيميل لازم يكون @gmail.com، والكلمة 6 أحرف أو أرقام إنجليزية على الأقل بدون رموز.</p><p class="msg" id="lmsg"></p><button class="mb" id="lsu" type="button">إنشاء حساب</button>');
   bindEyes(); $('bk').onclick=function(){loginM(msg)};
   function go(){var b=$('lsu'),em=$('lm').value.trim(),p=$('lp').value;
     if(!em){$('lmsg').textContent='اكتب الإيميل';return}
-    if(p.length<6){$('lmsg').textContent='كلمة المرور يجب أن تكون 6 أحرف أو أكثر';return}
+    if(!GMAIL_RE.test(em)){$('lmsg').textContent='التسجيل متاح فقط بإيميل ينتهي بـ @gmail.com';return}
+    if(!PASS_RE.test(p)){$('lmsg').textContent=PASS_MSG;return}
     if(p!==$('lp2').value){$('lmsg').textContent='كلمتا المرور غير متطابقتين';return}
     b.disabled=true;b.textContent='جاري إنشاء الحساب...';$('lmsg').textContent='';
     auth.createUserWithEmailAndPassword(em,p).then(function(c){var nd={name:'زبون',email:c.user.email,balance:0};return claimCid(c.user.uid,nd,'').catch(function(){return db.collection('users').doc(c.user.uid).set(nd)})}).then(closeM).catch(function(e){b.disabled=false;b.textContent='إنشاء حساب';$('lmsg').textContent=(e&&e.code==='auth/email-already-in-use')?'الإيميل مستخدم':(e&&e.code==='auth/weak-password')?'كلمة المرور ضعيفة':(e&&e.code==='auth/invalid-email')?'الإيميل غير صحيح':'تعذّر إنشاء الحساب، حاول مرة أخرى'})}
@@ -986,6 +1011,7 @@ function ordersM(){
   showM(h); $('mbody').dataset.v='orders'; setNav('nOrd');
 }
 $('nHome').onclick=function(){closeM();['list','game','social'].forEach(function(i){$(i).hidden=true});$('home').hidden=false;window.scrollTo(0,0)};
+$('banOut').onclick=function(){ auth.signOut() };
 $('nAcc').onclick=function(){setNav('nAcc');if(needFb())return;whenAuth(function(){me?acctM():loginM()})};
 $('nOrd').onclick=function(){setNav('nOrd');if(needFb())return;whenAuth(function(){me?ordersM():loginM('سجّل دخولك لعرض طلباتك')})};
 $('nTop').onclick=function(){setNav('nTop');if(needFb())return;whenAuth(function(){me?topM():loginM('سجّل دخولك أولاً')})};
@@ -998,6 +1024,7 @@ try{ $('pid').value=localStorage.getItem('al3m_pid')||'' }catch(e){}
 $('pid').addEventListener('input',function(){ try{localStorage.setItem('al3m_pid',this.value.trim())}catch(e){} });
 $('wa').addEventListener('click',function(e){
   e.preventDefault(); setErr("");
+  if(banned){banUI();return}
   if(!pick){setErr("اختر باقة أولاً");return}
   var isLink=isLinkPick(), pid='', ltype='', lacc='', lwa='', lpw='';
   if(isLink){
