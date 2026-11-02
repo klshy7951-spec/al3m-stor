@@ -390,6 +390,12 @@ html[data-theme=light] .dwa a{box-shadow:0 0 0 1px #cfc9b8}
   .bellb{width:40px;height:40px}.bellb svg{width:22px;height:22px}
   .brand{gap:7px}.brand .mark{width:38px;height:38px}.brand .wm{font-size:15px}
 }
+
+/* الشريط السفلي والعلوي فوق النوافذ */
+.nav{z-index:25}
+.top{z-index:26}
+#drw{z-index:45}
+#modal.full{top:var(--topH,0px)}
 </style>
 </head>
 <body>
@@ -1670,6 +1676,15 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
     showM('<h3>محفظتي</h3><div class="ord"><small>رصيدك الحالي</small><div class="pr" style="font-size:30px">'+moneyShort(bal)+'</div></div><button class="mb" id="wAdd" type="button">➕ إضافة رصيد</button><button class="mb g" id="wPay" type="button">🧾 دفعاتي</button>');
     G('wAdd').onclick=function(){topM()}; G('wPay').onclick=function(){payM()};
   };
+})();
+</script>
+<script>
+// يبقى الشريط العلوي ظاهراً فوق النوافذ
+(function(){
+  function topH(){var t=document.querySelector('.top');if(t)document.documentElement.style.setProperty('--topH',Math.max(0,Math.round(t.getBoundingClientRect().bottom))+'px')}
+  var _sm=window.showM;
+  if(typeof _sm==='function')window.showM=function(h){topH();return _sm(h)};
+  window.addEventListener('resize',topH);topH();
 })();
 </script>
 </body>
