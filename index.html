@@ -399,6 +399,20 @@ html[data-theme=light] .dwa a{box-shadow:0 0 0 1px #cfc9b8}
 
 .davt{width:84px;height:84px;border-radius:50%;object-fit:cover;display:grid;place-items:center;font-size:38px;margin:0 auto 10px;background:#242435;border:2px solid #f3bf4e;box-shadow:0 0 0 3px rgba(243,191,78,.2),0 0 18px rgba(243,191,78,.45);cursor:pointer}
 .ie img{width:100%;max-width:380px;height:auto;border-radius:18px;display:block;margin:0 auto;box-shadow:0 0 0 2px rgba(243,191,78,.4),0 12px 26px rgba(0,0,0,.6)}
+
+/* إصلاحات الوضع الفاتح */
+html[data-theme=light] .hero,html[data-theme=light] .banner{--ink:#f6f3ea;--muted:#9c9cb0;--gold-l:#ffe6a6;--goldtext:linear-gradient(180deg,#fff1c4 0,#f3bf4e 48%,#b7791a 100%)}
+html[data-theme=light] .card b{color:#fff3d0;-webkit-text-fill-color:#fff3d0}
+html[data-theme=light] .back,html[data-theme=light] .tab,html[data-theme=light] .pays span{background:linear-gradient(#ffffff,#ece7da);color:#17171f;box-shadow:0 0 0 1px #cfc9b8,0 3px 0 #cfc9b8}
+html[data-theme=light] .item b{color:#17171f}
+html[data-theme=light] .item span{color:#8a5207}
+html[data-theme=light] .item[aria-pressed="true"]{background:linear-gradient(165deg,#4a0a16 0,#25060c 70%,#150408 100%);color:#fff;box-shadow:0 0 0 2px #f3bf4e}
+html[data-theme=light] .item[aria-pressed="true"] b{color:#fff}
+html[data-theme=light] .item[aria-pressed="true"] span{color:#ffe6a6}
+html[data-theme=light] form,html[data-theme=light] .sbox{background:linear-gradient(#ffffff,#f3efe6);box-shadow:0 0 0 1px #d9d4c6}
+html[data-theme=light] #modal.full,html[data-theme=light] #modal.full .mbox{background:#f3f0e8!important}
+html[data-theme=light] .nav button.on span{color:#8a5207}
+html[data-theme=light] .notice{color:#3a3a4a}
 </style>
 </head>
 <body>
@@ -1020,7 +1034,7 @@ function signInM(msg){
   $('lgo').onclick=go; $('lp').onkeydown=function(e){if(e.key==='Enter')go()};
 }
 function signUpM(msg){
-  showM('<button class="bk" id="bk" type="button">← رجوع</button><h3>إنشاء حساب</h3><input id="lm" type="email" placeholder="الإيميل" autocomplete="email"><input id="ln" type="text" placeholder="الاسم" autocomplete="name" maxlength="30">'+pwField('lp','كلمة المرور (6 أحرف/أرقام+)','new-password')+pwField('lp2','تأكيد كلمة المرور','new-password')+'<p style="color:#9c9cb0;font-size:13px;margin:0 0 6px">الإيميل لازم يكون @gmail.com، والكلمة 6 أحرف أو أرقام إنجليزية على الأقل بدون رموز.</p><p class="msg" id="lmsg"></p><button class="mb" id="lsu" type="button">إنشاء حساب</button>');
+  showM('<button class="bk" id="bk" type="button">← رجوع</button><h3>إنشاء حساب</h3><input id="lm" type="email" placeholder="الإيميل" autocomplete="email"><input id="ln" type="text" placeholder="الاسم" autocomplete="name" maxlength="30">'+pwField('lp','كلمة المرور (6 أحرف/أرقام+)','new-password')+pwField('lp2','تأكيد كلمة المرور','new-password')+'<p style="color:#9c9cb0;font-size:13px;margin:0 0 6px">الإيميل لازم يكون @gmail.com، والكلمة 6 أحرف أو أرقام إنجليزية على الأقل بدون رموز.</p><div style=\"background:rgba(225,13,43,.14);border:1px solid #e10d2b;border-radius:12px;padding:10px 12px;margin:0 0 10px;color:#ff4d4d;font-weight:800;font-size:14px;line-height:1.6\">⚠️ تنبيه مهم: اكتب بريداً حقيقياً وموجوداً عندك. إذا كتبت بريداً خاطئاً أو غير موجود، ما رح نقدر نرجّع لك حسابك إذا ضيّعت كلمة المرور في المستقبل.</div><p class="msg" id="lmsg"></p><button class="mb" id="lsu" type="button">إنشاء حساب</button>');
   bindEyes(); $('bk').onclick=function(){loginM(msg)};
   function go(){var b=$('lsu'),em=$('lm').value.trim(),nm=$('ln').value.trim(),p=$('lp').value;
     if(!em){$('lmsg').textContent='اكتب الإيميل';return}
