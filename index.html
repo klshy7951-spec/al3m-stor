@@ -1163,9 +1163,21 @@ function admUsers(){
     var q=($('uq').value||'').trim().toLowerCase(), l=(usrCache||[]).filter(function(u){return !q||((u.name||'')+' '+(u.email||'')+' '+(u.cid||'')).toLowerCase().indexOf(q)>=0}).slice(0,300);
     $('umsg').textContent=(usrCache?usrCache.length:0)+' مستخدم'+(q?' — النتائج: '+l.length:'');
     $('ulist').innerHTML=l.map(function(u){var b=u.banned&&(!u.banUntil||Date.now()<u.banUntil);
-      return '<div class="ord"><b>'+esc(u.name||'بدون اسم')+(b?' 🚫':'')+'</b><small dir="ltr" style="text-align:right">'+esc(u.email||'')+'</small><small>ID: '+esc(u.cid||'—')+' · الرصيد: '+money(u.balance||0)+'</small></div>'}).join('');
+      return '<div class="ord"><b>'+esc(u.name||'بدون اسم')+(b?' 🚫':'')+'</b><small dir="ltr" style="text-align:right">'+esc(u.email||'')+'</small><small>ID: '+esc(u.cid||'—')+' · الرصيد: '+money(u.balance||0)+'</small>'+(((u.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase()||u.cid==='999999999')?'':'<button class="mb r" data-del="'+esc(u._id)+'" type="button" style="margin-top:8px">🗑 حذف</button>')+'</div>'}).join('');
   }
   $('uq').oninput=draw;
+  $('ulist').onclick=function(e){
+    var b=e.target.closest&&e.target.closest('button[data-del]'); if(!b) return;
+    var u=(usrCache||[]).filter(function(x){return x._id===b.dataset.del})[0]; if(!u) return;
+    if((u.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase()||u.cid==='999999999'){return}
+    if(!confirm('حذف نهائي للحساب:\n'+(u.name||'بدون اسم')+'\n'+(u.email||'')+'\nID: '+(u.cid||'—')+'\nالرصيد: '+money(u.balance||0)+'\n\nما في تراجع. متأكد؟')) return;
+    b.disabled=true;
+    var cidv=u.cid, ref=db.collection('users').doc(u._id);
+    busyP(db.collection('deleted').doc(u._id).set({email:u.email||'',name:u.name||'',cid:cidv||'',at:FV.serverTimestamp()}).catch(function(){}).then(function(){
+      var bt=db.batch(); bt.delete(ref); if(cidv) bt.delete(db.collection('ids').doc(cidv)); return bt.commit();
+    })).then(function(){ usrCache=(usrCache||[]).filter(function(x){return x._id!==u._id}); draw(); })
+    .catch(function(){ b.disabled=false; $('umsg').textContent='فشل الحذف (تحقق من قواعد Firebase)' });
+  };
   if(usrCache){draw();return}
   db.collection('users').get().then(function(q){
     usrCache=q.docs.map(function(d){var x=d.data();x._id=d.id;return x}).sort(function(a,b){return String(a.cid||'').localeCompare(String(b.cid||''))});
