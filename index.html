@@ -1163,21 +1163,9 @@ function admUsers(){
     var q=($('uq').value||'').trim().toLowerCase(), l=(usrCache||[]).filter(function(u){return !q||((u.name||'')+' '+(u.email||'')+' '+(u.cid||'')).toLowerCase().indexOf(q)>=0}).slice(0,300);
     $('umsg').textContent=(usrCache?usrCache.length:0)+' مستخدم'+(q?' — النتائج: '+l.length:'');
     $('ulist').innerHTML=l.map(function(u){var b=u.banned&&(!u.banUntil||Date.now()<u.banUntil);
-      return '<div class="ord"><b>'+esc(u.name||'بدون اسم')+(b?' 🚫':'')+'</b><small dir="ltr" style="text-align:right">'+esc(u.email||'')+'</small><small>ID: '+esc(u.cid||'—')+' · الرصيد: '+money(u.balance||0)+'</small>'+(((u.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase()||u.cid==='999999999')?'':'<button class="mb r" data-del="'+esc(u._id)+'" type="button" style="margin-top:8px">🗑 حذف</button>')+'</div>'}).join('');
+      return '<div class="ord"><b>'+esc(u.name||'بدون اسم')+(b?' 🚫':'')+'</b><small dir="ltr" style="text-align:right">'+esc(u.email||'')+'</small><small>ID: '+esc(u.cid||'—')+' · الرصيد: '+money(u.balance||0)+'</small></div>'}).join('');
   }
   $('uq').oninput=draw;
-  $('ulist').onclick=function(e){
-    var b=e.target.closest&&e.target.closest('button[data-del]'); if(!b) return;
-    var u=(usrCache||[]).filter(function(x){return x._id===b.dataset.del})[0]; if(!u) return;
-    if((u.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase()||u.cid==='999999999'){return}
-    if(!confirm('حذف نهائي للحساب:\n'+(u.name||'بدون اسم')+'\n'+(u.email||'')+'\nID: '+(u.cid||'—')+'\nالرصيد: '+money(u.balance||0)+'\n\nما في تراجع. متأكد؟')) return;
-    b.disabled=true;
-    var cidv=u.cid, ref=db.collection('users').doc(u._id);
-    busyP(db.collection('deleted').doc(u._id).set({email:u.email||'',name:u.name||'',cid:cidv||'',at:FV.serverTimestamp()}).catch(function(){}).then(function(){
-      var bt=db.batch(); bt.delete(ref); if(cidv) bt.delete(db.collection('ids').doc(cidv)); return bt.commit();
-    })).then(function(){ usrCache=(usrCache||[]).filter(function(x){return x._id!==u._id}); draw(); })
-    .catch(function(){ b.disabled=false; $('umsg').textContent='فشل الحذف (تحقق من قواعد Firebase)' });
-  };
   if(usrCache){draw();return}
   db.collection('users').get().then(function(q){
     usrCache=q.docs.map(function(d){var x=d.data();x._id=d.id;return x}).sort(function(a,b){return String(a.cid||'').localeCompare(String(b.cid||''))});
@@ -1209,7 +1197,7 @@ function adminM(v){
       +admTile('find','🔎','بحث برقم الطلب')+admTile('bal','💰','تعديل رصيد زبون')
       +admTile('ban','⏳','حظر مؤقت')+admTile('pban','🚫','حظر دائم')+admTile('unb','✅','فك الحظر')+admTile('usr','👥','المستخدمون')
       +admTile('bans','📋','قائمة المحظورين')+admTile('acc','🕵️','فحص حساب')+admTile('wrn','⚠️','تنبيه لمستخدم')+admTile('del','🗑️','حذف حساب')+admTile('edt','🛠️','الباقات والأسعار')
-      +admTile('ntf','🔔','تجربة الإشعار')+admTile('prc','💲','تثبيت الأسعار')+admTile('catalog','🧩','إدارة الفئات والمحتوى')+'</div>';
+      +admTile('ntf','🔔','تجربة الإشعار')+admTile('prc','💲','تثبيت الأسعار')+'</div>';
   } else if(v==='ords'){
     h=bk+'<h3>الطلبات المعلّقة ('+pend.length+')</h3>'+(pend.length?pend.map(admOrdCard).join(''):'<p class="msg" style="color:#9c9cb0">لا يوجد طلبات معلّقة.</p>');
   } else if(v==='tops'){
@@ -1231,8 +1219,6 @@ function adminM(v){
     h=bk+'<h3>تنبيه لمستخدم</h3><input id="ae" type="text" inputmode="numeric" placeholder="ID الزبون (9 أرقام)" autocomplete="off" dir="ltr"><textarea id="wt" rows="4" maxlength="400" placeholder="اكتب نص التحذير هنا"></textarea><p class="msg" id="amsg"></p><button class="mb r" id="abt" type="button">⚠️ إرسال التحذير</button>';
   } else if(v==='acc'){
     h=bk+'<h3>فحص حساب</h3><input id="aq" type="text" placeholder="الاسم أو ID الزبون أو الإيميل" autocomplete="off"><p class="msg" id="amsg"></p><button class="mb" id="abt" type="button">🔎 بحث</button><div id="ares"></div>';
-  } else if(v==='catalog'){
-    h=catalogAdminHtml();
   } else if(v==='edt'){
     h=admEdHtml();
   } else if(v==='prc'){
@@ -1263,8 +1249,6 @@ function adminM(v){
     $('abt').onclick=admWarn;
   } else if(v==='acc'){
     $('abt').onclick=admAcc; $('aq').onkeydown=function(e){if(e.key==='Enter')admAcc()};
-  } else if(v==='catalog'){
-    catalogAdminBind();
   } else if(v==='edt'){
     admEdBind();
   } else if(v==='prc'){
@@ -1742,65 +1726,5 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
   });
 })();
 </script>
-
-<script>
-// ===== مدير محتوى المتجر (فئات / ألعاب / أقسام / باقات) =====
-var catalogDocReady=false;
-function catalogSnapshot(){
-  if(!fbOK||!db)return;
-  db.collection('config').doc('catalog').onSnapshot(function(s){
-    if(s.exists){var d=s.data()||{};
-      if(Array.isArray(d.CATS)&&Array.isArray(d.GAMES)){
-        try{CATS=d.CATS;GAMES=d.GAMES;catalogDocReady=true;drawCats();if(!$('list').hidden)drawCards(($('q').value||'').trim().toLowerCase());if(!$('game').hidden){draw();sum();ready()}}
-        catch(e){console.warn('catalog load',e)}
-      }
-    }
-  },function(e){console.warn('catalog snapshot',e)});
-}
-function catalogSave(){
-  if(!isAdmin()){toast('غير مسموح');return Promise.resolve(false)}
-  if(!fbOK||!db){toast('Firebase غير متصل');return Promise.resolve(false)}
-  return db.collection('config').doc('catalog').set({CATS:CATS,GAMES:GAMES,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:me.email},{merge:false})
-    .then(function(){catalogDocReady=true;drawCats();toast('تم حفظ محتوى المتجر للجميع ✓');return true})
-    .catch(function(e){toast('فشل الحفظ: '+(e.message||'تحقق من قواعد Firebase'));return false});
-}
-function catalogAdminHtml(){
-  var h='<button class="bk" id="catAdminBack" type="button">← رجوع</button><h3>🧩 إدارة محتوى المتجر</h3><p style="color:#9c9cb0;line-height:1.7">تعديل الفئات والألعاب والأقسام والباقات. التغييرات تُحفظ على Firebase وتظهر للزوار.</p>';
-  h+='<button class="mb ok" id="catAddMain" type="button">➕ إضافة فئة رئيسية</button><button class="mb" id="catAddGame" type="button">🎮 إضافة لعبة / خدمة داخل فئة</button>';
-  h+='<h3>الفئات الرئيسية</h3>';
-  CATS.forEach(function(K,i){h+='<div class="ord"><b>'+esc(K.name)+'</b><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="mb g" data-cat-edit="'+i+'" type="button">✏️ تعديل الاسم</button><button class="mb r" data-cat-del="'+i+'" type="button">🗑️ حذف الفئة</button></div></div>'});
-  h+='<h3>الألعاب والخدمات</h3>';
-  GAMES.forEach(function(Gm,i){h+='<div class="ord"><b>'+esc(Gm.name)+'</b><small>تابعة للفئات: '+CATS.filter(function(K){return (K.games||[]).indexOf(i)>=0}).map(function(K){return K.name}).join('، ')+'</small><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="mb g" data-game-edit="'+i+'" type="button">🛠️ إدارة الأقسام والباقات</button><button class="mb" data-game-name="'+i+'" type="button">✏️ تعديل الاسم</button><button class="mb r" data-game-del="'+i+'" type="button">🗑️ حذف اللعبة</button></div></div>'});
-  return h+'<p class="msg" id="catAdminMsg"></p>';
-}
-function catalogAdminBind(){
-  var $m=function(id){return document.getElementById(id)};
-  $m('catAdminBack').onclick=function(){adminM('hub')};
-  $m('catAddMain').onclick=function(){var n=prompt('اسم الفئة الرئيسية الجديدة:');if(!n||!n.trim())return;CATS.push({name:n.trim(),en:n.trim().toUpperCase(),img:'',games:[],em:'<b style="font-size:56px">📦</b>'});catalogSave().then(function(ok){if(ok)adminM('catalog')})};
-  $m('catAddGame').onclick=function(){if(!CATS.length){toast('أضف فئة أولاً');return}var n=prompt('اسم اللعبة أو الخدمة:');if(!n||!n.trim())return;var catNames=CATS.map(function(x,i){return i+': '+x.name}).join('\n');var ci=parseInt(prompt('اكتب رقم الفئة التي ستحتوي اللعبة:\n'+catNames,'0'),10);if(!(ci>=0&&ci<CATS.length))return;var g={name:n.trim(),en:n.trim().toUpperCase(),em:'<b style="font-size:56px">🎮</b>',cats:[{name:'الخدمات',items:[]}]};GAMES.push(g);CATS[ci].games=CATS[ci].games||[];CATS[ci].games.push(GAMES.length-1);catalogSave().then(function(ok){if(ok)adminM('catalog')})};
-  [].forEach.call(document.querySelectorAll('[data-cat-edit]'),function(b){b.onclick=function(){var i=+b.dataset.catEdit,n=prompt('الاسم الجديد للفئة:',CATS[i].name);if(!n||!n.trim())return;CATS[i].name=n.trim();CATS[i].en=n.trim().toUpperCase();var im=prompt('رابط صورة الفئة (اتركه فارغاً للإبقاء على الصورة الحالية، أو اكتب - لإزالة الصورة):',CATS[i].img||'');if(im==='-')CATS[i].img='';else if(im&&im.trim())CATS[i].img=im.trim();catalogSave().then(function(ok){if(ok)adminM('catalog')})}});
-  [].forEach.call(document.querySelectorAll('[data-cat-del]'),function(b){b.onclick=function(){var i=+b.dataset.catDel;if(!confirm('حذف الفئة الرئيسية «'+CATS[i].name+'»؟'))return;CATS.splice(i,1);catalogSave().then(function(ok){if(ok)adminM('catalog')})}});
-  [].forEach.call(document.querySelectorAll('[data-game-name]'),function(b){b.onclick=function(){var i=+b.dataset.gameName,n=prompt('اسم اللعبة الجديد:',GAMES[i].name);if(!n||!n.trim())return;GAMES[i].name=n.trim();GAMES[i].en=n.trim().toUpperCase();var im=prompt('رابط صورة اللعبة (اتركه فارغاً للإبقاء على الصورة الحالية):','');if(im&&im.trim())GAMES[i].em="<img src='"+im.trim()+"' alt='"+GAMES[i].name+"'>";catalogSave().then(function(ok){if(ok)adminM('catalog')})}});
-  [].forEach.call(document.querySelectorAll('[data-game-del]'),function(b){b.onclick=function(){var i=+b.dataset.gameDel;if(!confirm('حذف اللعبة «'+GAMES[i].name+'» مع أقسامها وباقاتها؟'))return;GAMES.splice(i,1);CATS.forEach(function(K){K.games=(K.games||[]).filter(function(x){return x!==i}).map(function(x){return x>i?x-1:x})});catalogSave().then(function(ok){if(ok)adminM('catalog')})}});
-  [].forEach.call(document.querySelectorAll('[data-game-edit]'),function(b){b.onclick=function(){catalogGameEdit(+b.dataset.gameEdit)}});
-}
-function catalogGameEdit(gi){
-  var Gm=GAMES[gi];if(!Gm)return;
-  var html='<button class="bk" id="cgBack" type="button">← رجوع</button><h3>'+esc(Gm.name)+' — إدارة الأقسام والباقات</h3><button class="mb ok" id="cgAddSub" type="button">➕ إضافة قسم فرعي</button>';
-  (Gm.cats||[]).forEach(function(C,ci){html+='<div class="ord"><b>'+esc(C.name)+'</b><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="mb g" data-sub-edit="'+ci+'">✏️ تعديل القسم</button><button class="mb r" data-sub-del="'+ci+'">🗑️ حذف القسم</button><button class="mb" data-item-add="'+ci+'">➕ إضافة باقة</button></div>';
-    (C.items||[]).forEach(function(it,ix){html+='<div style="border-top:1px solid var(--line);padding:8px 0;margin-top:8px"><b>'+esc(it[0])+'</b> — '+esc(it[1])+' ل.س <div style="display:flex;gap:6px;margin-top:6px"><button class="mb g" data-item-edit="'+ci+'_'+ix+'">✏️ تعديل</button><button class="mb r" data-item-del="'+ci+'_'+ix+'">🗑️ حذف</button></div></div>'});html+='</div>'});
-  showM(html);$('mbody').dataset.v='admin';
-  $('cgBack').onclick=function(){adminM('catalog')};
-  $('cgAddSub').onclick=function(){var n=prompt('اسم القسم الفرعي:');if(!n||!n.trim())return;Gm.cats.push({name:n.trim(),items:[]});catalogSave().then(function(ok){if(ok)catalogGameEdit(gi)})};
-  [].forEach.call(document.querySelectorAll('[data-sub-edit]'),function(b){b.onclick=function(){var ci=+b.dataset.subEdit,n=prompt('اسم القسم:',Gm.cats[ci].name);if(!n||!n.trim())return;Gm.cats[ci].name=n.trim();catalogSave().then(function(ok){if(ok)catalogGameEdit(gi)})}});
-  [].forEach.call(document.querySelectorAll('[data-sub-del]'),function(b){b.onclick=function(){var ci=+b.dataset.subDel;if(!confirm('حذف القسم الفرعي وكل الباقات الموجودة داخله؟'))return;Gm.cats.splice(ci,1);catalogSave().then(function(ok){if(ok)catalogGameEdit(gi)})}});
-  [].forEach.call(document.querySelectorAll('[data-item-add]'),function(b){b.onclick=function(){var ci=+b.dataset.itemAdd,n=prompt('اسم الباقة:');if(!n||!n.trim())return;var p=parseFloat((prompt('السعر بالليرة السورية:')||'').replace(',','.'));if(!(p>0)){toast('السعر غير صحيح');return}Gm.cats[ci].items.push([n.trim(),p]);catalogSave().then(function(ok){if(ok)catalogGameEdit(gi)})}});
-  [].forEach.call(document.querySelectorAll('[data-item-edit]'),function(b){b.onclick=function(){var parts=b.dataset.itemEdit.split('_'),ci=+parts[0],ix=+parts[1],it=Gm.cats[ci].items[ix],n=prompt('اسم الباقة:',it[0]);if(!n||!n.trim())return;var p=parseFloat((prompt('السعر:',it[1])||'').replace(',','.'));if(!(p>0)){toast('السعر غير صحيح');return}it[0]=n.trim();it[1]=p;catalogSave().then(function(ok){if(ok)catalogGameEdit(gi)})}});
-  [].forEach.call(document.querySelectorAll('[data-item-del]'),function(b){b.onclick=function(){var parts=b.dataset.itemDel.split('_'),ci=+parts[0],ix=+parts[1];if(!confirm('حذف هذه الباقة؟'))return;Gm.cats[ci].items.splice(ix,1);catalogSave().then(function(ok){if(ok)catalogGameEdit(gi)})}});
-}
-// يتم تحميل النسخة المخزنة من Firebase لجميع الزوار بعد اتصال Firebase
-setTimeout(catalogSnapshot,0);
-</script>
-
 </body>
 </html>
