@@ -19,7 +19,7 @@
 <title>AL3M STOR — شحن ألعاب</title>
 <link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Russo+One&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script>window.IMG=window.IMG||{};</script>
-<script src="images.js?v=1"></script>
+<script src="images.js?v=2"></script>
 <script>try{if(localStorage.getItem("al3m_theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
 <style>
 :root{
@@ -396,6 +396,9 @@ html[data-theme=light] .dwa a{box-shadow:0 0 0 1px #cfc9b8}
 .top{z-index:26}
 #drw{z-index:45}
 #modal.full{top:var(--topH,0px)}
+
+.davt{width:84px;height:84px;border-radius:50%;object-fit:cover;display:grid;place-items:center;font-size:38px;margin:0 auto 10px;background:#242435;border:2px solid #f3bf4e;box-shadow:0 0 0 3px rgba(243,191,78,.2),0 0 18px rgba(243,191,78,.45);cursor:pointer}
+.ie img{width:100%;max-width:380px;height:auto;border-radius:18px;display:block;margin:0 auto;box-shadow:0 0 0 2px rgba(243,191,78,.4),0 12px 26px rgba(0,0,0,.6)}
 </style>
 </head>
 <body>
@@ -596,14 +599,14 @@ var CATS = [
   {name:"السوشال ميديا", en:"SOCIAL MEDIA", social:true, games:[], img:""+IMG.cat_social+"",
    em:'<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="30" cy="50" r="13" fill="#fff"/><circle cx="72" cy="27" r="13" fill="#fff"/><circle cx="72" cy="73" r="13" fill="#fff"/><path d="M30 50 72 27M30 50 72 73" stroke="#fff" stroke-width="6" stroke-linecap="round"/></svg>'}
   ,{name:"صناعة مواقع", en:"WEB DESIGN", img:""+IMG.cat_web+"", games:[], em:'<b style="font-size:56px;line-height:1">🛠️</b>', pages:[
-    {name:"موقع بسيط", en:"SIMPLE SITE", em:'<b style="font-size:56px;line-height:1">🌐</b>', text:"السعر من 5$ إلى 20$ شهرياً حسب الموقع.", btns:[{t:"💬 اطلب موقع بسيط عبر واتساب", wa:"مرحباً AL3M STOR، أريد طلب موقع بسيط."}]},
-    {name:"موقع احترافي", en:"PRO SITE", em:'<b style="font-size:56px;line-height:1">💎</b>', text:"السعر من 20$ إلى 40$ شهرياً حسب الموقع.", btns:[{t:"💬 اطلب موقع احترافي عبر واتساب", wa:"مرحباً AL3M STOR، أريد طلب موقع احترافي."}]}
+    {name:"موقع بسيط", en:"SIMPLE SITE", em:"<img src='"+IMG.site1+"' alt='موقع بسيط'>", text:"السعر من 5$ إلى 20$ شهرياً حسب الموقع.", btns:[{t:"💬 اطلب موقع بسيط عبر واتساب", wa:"مرحباً AL3M STOR، أريد طلب موقع بسيط."}]},
+    {name:"موقع احترافي", en:"PRO SITE", em:"<img src='"+IMG.site2+"' alt='موقع احترافي'>", text:"السعر من 20$ إلى 40$ شهرياً حسب الموقع.", btns:[{t:"💬 اطلب موقع احترافي عبر واتساب", wa:"مرحباً AL3M STOR، أريد طلب موقع احترافي."}]}
   ]}
   ,{name:"حسابات فري فاير", en:"FREE FIRE ACCOUNTS", img:""+IMG.cat_ffacc+"", games:[], em:'<b style="font-size:56px;line-height:1">🔥</b>', direct:
     {name:"حسابات فري فاير", em:'<b style="font-size:64px;line-height:1">🔥</b>', text:"اختر من الخيارات التالية:", btns:[{t:"👥 مجموعة بيع الحسابات", url:"FF_GROUP"},{t:"💬 طلب خاص لحساب", wa:"اريد حساب فري فاير بشكل خاص"}]}}
   ,{name:"سحب الرصيد", en:"WITHDRAW", img:""+IMG.cat_wd+"", games:[], em:'<b style="font-size:56px;line-height:1">💸</b>', pages:[
-    {name:"خدمات شام كاش", en:"SHAM CASH", em:'<b style="font-size:56px;line-height:1">💳</b>', text:"اختر الخدمة المطلوبة:", btns:[{t:"💬 شام كاش سوري", wa:"مرحباً AL3M STOR، أريد سحب رصيدي عبر شام كاش سوري.", acct:1}]},
-    {name:"خدمات سريتيل", en:"SYRIATEL", em:'<b style="font-size:56px;line-height:1">📱</b>', text:"اختر الخدمة المطلوبة:", btns:[{t:"💬 رصيد سريتيل", wa:"مرحباً AL3M STOR، أريد سحب رصيدي عبر رصيد سريتيل.", acct:1},{t:"💬 سريتيل كاش", wa:"مرحباً AL3M STOR، أريد سحب رصيدي عبر سريتيل كاش.", acct:1}]}
+    {name:"خدمات شام كاش", en:"SHAM CASH", em:"<img src='"+IMG.shamcash+"' alt='شام كاش'>", text:"اختر الخدمة المطلوبة:", btns:[{t:"💬 شام كاش سوري", wa:"مرحباً AL3M STOR، أريد سحب رصيدي عبر شام كاش سوري.", acct:1}]},
+    {name:"خدمات سريتيل", en:"SYRIATEL", em:"<img src='"+IMG.syrcash+"' alt='سريتيل كاش'>", text:"اختر الخدمة المطلوبة:", btns:[{t:"💬 رصيد سريتيل", wa:"مرحباً AL3M STOR، أريد سحب رصيدي عبر رصيد سريتيل.", acct:1},{t:"💬 سريتيل كاش", wa:"مرحباً AL3M STOR، أريد سحب رصيدي عبر سريتيل كاش.", acct:1}]}
   ]}
 ];
 var FF_GROUP = "https://chat.whatsapp.com/D31NZpdCpYjGHcfuF8wZvx?s=cl&p=a&mlu=4&ilr=4&iam=2";   // ضع هنا رابط مجموعة واتساب لبيع الحسابات، مثال: https://chat.whatsapp.com/XXXX
@@ -1645,7 +1648,7 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
   }
   function it(a,id,t,p,c,x){return '<button class="dit" type="button" data-a="'+a+'"'+(id?' data-id="'+id+'"':'')+'><svg viewBox="0 0 24 24" style="fill:'+c+'"><path d="'+p+'"/></svg>'+t+'</button>'}
   function build(){
-    var lg=!!me, h='<div class="dtop">'+(lg?'<b>'+esc(uname||'حسابي')+'</b><small>'+esc(me.email)+'</small><div class="dbal">'+moneyShort(bal)+'</div>':'<h3>تسجيل الدخول</h3><p>سجّل دخولك وتمتع بتجربة شراء سهلة</p><button class="mb ok" type="button" data-a="login">تسجيل الدخول</button>')+'</div>';
+    var lg=!!me, h='<div class="dtop">'+(lg?(avatar?'<img class="davt" data-a="go" data-id="nAcc" alt="" src="'+esc(avatar)+'">':'<div class="davt" data-a="go" data-id="nAcc">👤</div>')+'<b>'+esc(uname||'حسابي')+'</b><small>'+esc(me.email)+'</small><div class="dbal">'+moneyShort(bal)+'</div>':'<h3>تسجيل الدخول</h3><p>سجّل دخولك وتمتع بتجربة شراء سهلة</p><button class="mb ok" type="button" data-a="login">تسجيل الدخول</button>')+'</div>';
     h+='<div style="margin-top:8px">'+it('go','nHome','الرئيسية',P.home,'#3cea82');
     h+=it('go','nAcc','حسابي',P.user,'#3cea82')+it('go','nOrd','طلباتي',P.cart,'#ff6a6a')+it('wal','','محفظتي',P.wal,'#f3bf4e')+it('pay','','دفعاتي',P.pay,'#4da3ff')+it('go','addBal','إضافة رصيد',P.add,'#4da3ff');
     if(lg&&isAdmin())h+=it('go','nAdm','لوحة الأدمن',P.user,'#f3bf4e');
@@ -1685,6 +1688,28 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
   var _sm=window.showM;
   if(typeof _sm==='function')window.showM=function(h){topH();return _sm(h)};
   window.addEventListener('resize',topH);topH();
+})();
+</script>
+<script>
+// زر الرجوع بالهاتف: يرجع خطوة داخل الموقع بدل ما يطلّع الزبون منه
+(function(){
+  var armed=false;
+  function G(i){return document.getElementById(i)}
+  function vis(i){var e=G(i);return !!e&&!e.hidden}
+  function arm(){try{history.pushState({al3m:1},'')}catch(e){}}
+  function first(){if(armed)return;armed=true;arm()}
+  ['click','touchstart','keydown'].forEach(function(ev){document.addEventListener(ev,first,{passive:true})});
+  window.addEventListener('popstate',function(){
+    if(!armed)return;
+    var drw=G('drw'),md=G('modal');
+    if(drw&&drw.classList.contains('open')){drw.classList.remove('open');drw.setAttribute('aria-hidden','true');arm();return}
+    if(md&&!md.hidden){if(!md.classList.contains('lock'))closeM();arm();return}
+    if(vis('game')){G('back').click();arm();return}
+    if(vis('social')){G('backSocial').click();arm();return}
+    if(vis('info')){G('backInfo').click();arm();return}
+    if(vis('list')){G('backHome').click();arm();return}
+    armed=false;history.back();
+  });
 })();
 </script>
 </body>
