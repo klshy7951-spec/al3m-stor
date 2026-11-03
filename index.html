@@ -633,7 +633,7 @@ var SOCIAL = [
   {name:"اليوتيوب", en:"YOUTUBE", em:"<img class='lg' src='"+IMG.yt+"' alt='YouTube'>"},
   {name:"الواتساب", en:"WHATSAPP", em:"<img class='lg' src='"+IMG.wa+"' alt='WhatsApp'>"}
 ];
-var cat = 0, PR = null;
+var cat = 0, PR = null, pidx = [];
 
 var g = 0, c = 0, pick = null, pay = null;
 var $ = function(id){return document.getElementById(id)};
@@ -664,17 +664,25 @@ function availRefresh(){
 }
 
 // ---- الرئيسية ----
+function curPages(){ var arr=CATS[cat].pages; for(var i=0;i<pidx.length;i++){ var P=arr[pidx[i]]; if(!P||!P.pages){ pidx.length=i; break } arr=P.pages } return arr }
+function pnames(){ var arr=CATS[cat].pages, nm=''; for(var i=0;i<pidx.length;i++){ var P=arr[pidx[i]]; if(!P) break; nm=P.name; arr=P.pages||[] } return nm }
+function openPage(P,pi){
+  if (P.kind==='folder'){ pidx.push(pi); $('q').value=''; drawCards(''); window.scrollTo(0,0); return }
+  if (P.kind==='svc' && P.gx!=null && GAMES[P.gx]){ openGame(P.gx); return }
+  openInfo(P,'list');
+}
 function drawCards(filter){
   var box = $('cards'), n = 0; box.innerHTML = "";
   if (CATS[cat].pages){
-    CATS[cat].pages.forEach(function(P){
+    var parr = curPages(); $('lname').textContent = pidx.length ? pnames() : CATS[cat].name;
+    parr.forEach(function(P,pi){
       if (filter && (P.name+" "+P.en).toLowerCase().indexOf(filter) < 0) return;
       n++;
-      var b = btn('card', "", null, function(){ openInfo(P,'list') });
+      var b = btn('card', "", null, function(){ openPage(P,pi) });
       b.innerHTML = '<div class="art"><span aria-hidden="true">'+P.em+'</span><i class="x">'+P.en+'</i></div><b>'+P.name+'</b>';
       box.appendChild(b);
     });
-    $('none').textContent = "ما لقينا قسماً بهذا الاسم.";
+    $('none').textContent = filter ? "ما لقينا قسماً بهذا الاسم." : "لا يوجد محتوى هنا بعد.";
     $('none').hidden = n > 0; return;
   }
   if (CATS[cat].social){
@@ -711,7 +719,7 @@ function openGame(i){
   draw(); sum(); ready(); window.scrollTo(0,0);
 }
 $('back').onclick = function(){ $('game').hidden = true; $('list').hidden = false; window.scrollTo(0,0) };
-$('backHome').onclick = function(){ $('list').hidden = true; $('home').hidden = false; window.scrollTo(0,0) };
+$('backHome').onclick = function(){ if (pidx.length){ pidx.pop(); $('q').value=''; drawCards(''); window.scrollTo(0,0); return } $('list').hidden = true; $('home').hidden = false; window.scrollTo(0,0) };
 
 // ---- صفحة السوشال ميديا ----
 function openSocial(i){
@@ -754,7 +762,7 @@ function openInfo(P,from){
 $('backInfo').onclick=function(){ $('info').hidden=true; if(infoFrom==='home') $('home').hidden=false; else $('list').hidden=false; window.scrollTo(0,0) };
 function openCat(i){
   if (CATS[i].direct){ cat=i; openInfo(CATS[i].direct,'home'); return }
-  cat = i; $('lname').textContent = CATS[i].name; $('q').value = "";
+  cat = i; pidx = []; $('lname').textContent = CATS[i].name; $('q').value = "";
   $('home').hidden = true; $('list').hidden = false;
   drawCards(""); window.scrollTo(0,0);
 }
@@ -780,7 +788,13 @@ function draw(){
   });
 }
 function isLinkPick(){ return !!(pick && /ربط/.test(pick.n)) }
-function syncFields(){ var l=isLinkPick(); $('linkBox').hidden=!l; $('pidBox').hidden=l }
+function syncFields(){
+  var l=isLinkPick(), G=GAMES[g]||{}, m=G.idMode||'num';
+  $('linkBox').hidden=!l; $('pidBox').hidden=l||m==='none';
+  var lb=$('pidBox').querySelector('label'), inp=$('pid');
+  lb.textContent = m==='txt' ? (G.idLabel||'المعلومة المطلوبة') : 'ID اللاعب (رقم حسابك في اللعبة)';
+  inp.setAttribute('inputmode', m==='txt'?'text':'numeric'); inp.placeholder = m==='txt' ? 'اكتبها هنا' : 'اكتب الـ ID هنا';
+}
 function sum(){
   syncFields();
   if (!pick) { $('chosen').textContent = "لم تختر باقة بعد"; $('total').textContent = "—"; return; }
@@ -1330,7 +1344,7 @@ $('addBal').onclick=function(){ if(needFb())return; whenAuth(function(){ me?topM
 $('modal').onclick=function(e){ if(e.target===this&&!warnBusy) closeM() };
 
 try{ $('pid').value=localStorage.getItem('al3m_pid')||'' }catch(e){}
-$('pid').addEventListener('input',function(){ try{localStorage.setItem('al3m_pid',this.value.trim())}catch(e){} });
+$('pid').addEventListener('input',function(){ if((GAMES[g]&&GAMES[g].idMode||'num')!=='num') return; try{localStorage.setItem('al3m_pid',this.value.trim())}catch(e){} });
 $('wa').addEventListener('click',function(e){
   e.preventDefault(); setErr("");
   if(banBlock())return;
@@ -1346,8 +1360,13 @@ $('wa').addEventListener('click',function(e){
     if(lpw.length<4){setErr("اكتب كلمة سر الحساب");$('lpw').focus();return}
     if(lwa.length<8||lwa.length>15){setErr("اكتب رقم واتساب صحيح للتواصل معك");$('lwa').focus();return}
   } else {
+    var idm=(GAMES[pick.g]&&GAMES[pick.g].idMode)||'num';
+    if(idm==='none'){ pid='-' }
+    else if(idm==='txt'){ pid=$('pid').value.trim(); if(pid.length<3||pid.length>120){setErr("اكتب: "+(GAMES[pick.g].idLabel||'المعلومة المطلوبة')+" قبل الطلب");$('pid').focus();return} }
+    else {
     pid=$('pid').value.trim();
     if(!/^\d{6,14}$/.test(pid)){setErr("اكتب ID اللاعب (أرقام فقط) قبل الطلب");$('pid').focus();return}
+    }
   }
   if(fbOK&&!authReady){setErr("لحظة، جاري التحقق من حسابك...");whenAuth(function(){$('wa').click()});return}
   if(needFb())return;
@@ -1732,14 +1751,15 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
   if(typeof db==='undefined'||!db||typeof IMG==='undefined') return;
   var NG0=GAMES.length, G0=GAMES.map(function(g){return {name:g.name,en:g.en,em:g.em}}),
       CATS0=JSON.parse(JSON.stringify(CATS)), SOC0=JSON.parse(JSON.stringify(SOCIAL)),
-      CT=null, ED=null, FSC={}, view=[['home']];
+      CT=null, ED=null, FSC={}, view=[['home']], LASTJ='', PEND=[], SAVING=0, INL={},
+      PH='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   function D(i){return document.getElementById(i)}
   function cl(o){return JSON.parse(JSON.stringify(o))}
   function walk(o,f){ if(Array.isArray(o)) return o.map(function(x){return walk(x,f)});
     if(o&&typeof o==='object'){var r={};for(var k in o)r[k]=walk(o[k],f);return r}
     return typeof o==='string'?f(o):o }
   function tok(s){ for(var k in IMG){var v=IMG[k]; if(v&&s.indexOf(v)>=0) s=s.split(v).join('@IMG:'+k)} return s }
-  function res(s){ return s.replace(/@IMG:([a-z0-9_]+)/g,function(m,k){return IMG[k]||''}).replace(/@FS:([A-Za-z0-9]+)/g,function(m,i){return FSC[i]||''}) }
+  function res(s){ return s.replace(/@IMG:([a-z0-9_]+)/g,function(m,k){return IMG[k]||''}).replace(/@FS:([A-Za-z0-9]+)/g,function(m,i){return FSC[i]||PH}) }
   function seed(){ return {v:1,cats:walk(cl(CATS0),tok),social:walk(cl(SOC0),tok),gx:{},extra:[]} }
   function needFS(ct){ var ids={}; JSON.stringify(ct).replace(/@FS:([A-Za-z0-9]+)/g,function(m,i){ids[i]=1}); return Object.keys(ids) }
   function loadFS(ids){ return Promise.all(ids.map(function(id){
@@ -1750,9 +1770,14 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
     GAMES.length=NG0;
     G0.forEach(function(o,i){GAMES[i].name=o.name;GAMES[i].en=o.en;GAMES[i].em=o.em});
     for(var i in (ct.gx||{})){ var x=ct.gx[i]; if(GAMES[i]){ if(x.name)GAMES[i].name=x.name; if(x.en)GAMES[i].en=x.en; if(x.em)GAMES[i].em=res(x.em) } }
-    (ct.extra||[]).forEach(function(x){ GAMES.push({name:x.name,en:x.en,em:res(x.em||''),cats:cl(x.cats||[])}) });
+    (ct.extra||[]).forEach(function(x){ GAMES.push({name:x.name,en:x.en,em:res(x.em||''),cats:cl(x.cats||[]),idMode:x.idMode,idLabel:x.idLabel}) });
     var vis=walk(cl(ct.cats),res).filter(function(k){return !k.hide});
     CATS.length=0; vis.forEach(function(k){CATS.push(k)});
+    (function svcPass(list){ (list||[]).forEach(function(P){
+      if(P.kind==='svc'){ var S=P.svc||{}, cs=(S.cats&&S.cats.length)?S.cats:[{name:'الباقات',items:[]}];
+        P.gx=GAMES.length;
+        GAMES.push({name:P.name,en:P.en||'',em:P.em||'',idMode:S.idMode,idLabel:S.idLabel,cats:cs.map(function(C){return {name:C.name,items:(C.items||[]).map(function(it){return [String(it[0]),+it[1]||0]})}})}) }
+      if(P.pages) svcPass(P.pages) }) })(CATS.reduce(function(a,K){ return K.pages?a.concat(K.pages):a },[]));
     SOCIAL.length=0; walk(cl(ct.social||[]),res).forEach(function(x){SOCIAL.push(x)});
     if(typeof cat==='number'&&cat>=CATS.length) cat=0;
     if(typeof availRefresh==='function') availRefresh();
@@ -1760,7 +1785,8 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
   db.collection('config').doc('catalog').onSnapshot(function(s){
     if(!s.exists){ var was=CT; CT=null; if(was) apply(seed()); return }
     var c; try{c=JSON.parse(s.data().json)}catch(e){return}
-    CT=c; loadFS(needFS(c)).then(function(){apply(c)});
+    CT=c; apply(c);
+    var need=needFS(c).filter(function(i){return !FSC[i]}); if(need.length) loadFS(need).then(function(){ if(CT===c) apply(c) });
   },function(){});
 
   // ---------- واجهة المحرّر ----------
@@ -1774,7 +1800,13 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
   function emSrc(em){ var m=/src='([^']*)'/.exec(em||''); return m?m[1]:'' }
   function imgBox(tk,a){ var u=res(tk||''); return '<div style="display:flex;align-items:center;gap:12px;margin:10px 0">'+(u?'<img src="'+u+'" alt="" style="width:84px;height:84px;object-fit:cover;border-radius:14px;box-shadow:0 0 0 2px rgba(243,191,78,.4)">':'<div style="width:84px;height:84px;border-radius:14px;background:#242435;display:grid;place-items:center;font-size:30px">🖼️</div>')+'<button class="mb g" style="margin:0" data-sed="'+a+'" type="button">📷 تغيير الصورة</button></div>' }
   function imgTag(tk,alt,lg){ return "<img "+(lg?"class='lg' ":"")+"src='"+tk+"' alt='"+String(alt||'').replace(/'/g,'')+"'>" }
+  function pg(path){ var a=String(path).split('.').map(Number), n=ED.cats[a[0]].pages[a[1]]; for(var k=2;k<a.length;k++) n=n.pages[a[k]]; return n }
+  function kidsOf(path){ var a=String(path).split('.'); if(a.length===1) return ED.cats[+a[0]].pages; var P=pg(path); return P.pages||(P.pages=[]) }
+  function newSvc(){ return {idMode:'num',idLabel:'',cats:[{name:'الباقات',items:[]}]} }
+  function svcOf(sref){ if(sref.indexOf('pg_')===0){ var P=pg(sref.slice(3)); return P.svc||(P.svc=newSvc()) } return ED.extra[+sref.slice(2)] }
   function ref(p){ var a=p.split('.'); if(a[0]==='cats')return ED.cats; if(a[0]==='social')return ED.social;
+    if(a[0]==='kids')return kidsOf(a.slice(1).join('.'));
+    if(a[0]==='pbtns'){ var P=pg(a.slice(1).join('.')); return P.btns||(P.btns=[]) }
     if(a[0]==='pages')return ED.cats[+a[1]].pages; if(a[0]==='games')return ED.cats[+a[1]].games;
     if(a[0]==='btns')return ED.cats[+a[1]].pages[+a[2]].btns; if(a[0]==='dbtns')return ED.cats[+a[1]].direct.btns;
     if(a[0]==='sub')return ED.extra[+a[1]].cats; return [] }
@@ -1788,7 +1820,7 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
   function vCat(i){
     var K=ED.cats[i], h=back()+'<h3>'+esc2(K.name)+'</h3>'+fld('name','اسم القسم',K.name)+fld('en','الاسم بالإنجليزي (يظهر على البطاقة)',K.en||'')+imgBox(K.img,'img:cat:'+i)+bt('savecat:'+i,'حفظ');
     if(K.social) h+=bt('open:soc:0','فتح السوشال ميديا ›','g');
-    else if(K.pages){ h+='<h3 style="font-size:20px">الصفحات</h3>'+K.pages.map(function(P,j){ return row(P.name,tb('open:page:'+i+':'+j,'✏️')+tb('up:pages.'+i+':'+j,'↑')+tb('dn:pages.'+i+':'+j,'↓')+tb('del:pages.'+i+':'+j,'🗑️','r')) }).join('')+bt('new:page:'+i,'➕ صفحة جديدة') }
+    else if(K.pages){ h+='<h3 style="font-size:20px">محتوى القسم</h3>'+pageRows(String(i))+addBtns(String(i)) }
     else if(K.direct){ h+=bt('open:direct:'+i,'تعديل نص وأزرار الصفحة ›','g') }
     else { var gl=K.games||[]; h+='<h3 style="font-size:20px">الألعاب</h3>'+gl.map(function(ix,j){ return row(gm(ix).name,tb('open:game:'+ix,'✏️')+tb('up:games.'+i+':'+j,'↑')+tb('dn:games.'+i+':'+j,'↓')+tb('del:games.'+i+':'+j,'🗑️','r')) }).join('')+bt('new:game:'+i,'➕ لعبة جديدة');
       var shown={}; ED.cats.forEach(function(k){(k.games||[]).forEach(function(x){shown[x]=1})});
@@ -1799,57 +1831,128 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
     return '<h3 style="font-size:20px">الأزرار</h3>'+list.map(function(B,n){
       return '<div class="ord"><input type="text" data-f="bt'+n+'" value="'+esc2(B.t)+'" placeholder="نص الزر">'+(B.url!==undefined?'<input type="text" dir="ltr" data-f="bu'+n+'" value="'+esc2(B.url)+'" placeholder="رابط">':'<textarea data-f="bw'+n+'" rows="2" style="width:100%" placeholder="رسالة واتساب الجاهزة">'+esc2(B.wa||'')+'</textarea>')+'<div style="display:flex;gap:8px">'+tb('del:'+p+':'+n,'🗑️ حذف الزر','r')+'</div></div>' }).join('')
       +'<div style="display:flex;gap:8px">'+tb('addbtn:'+p+':wa','➕ زر واتساب')+tb('addbtn:'+p+':url','➕ زر رابط')+'</div>' }
-  function readBtns(list){ list.forEach(function(B,n){ B.t=val('bt'+n)||B.t; if(B.url!==undefined) B.url=val('bu'+n); else B.wa=val('bw'+n) }) }
-  function vPage(i,j){ var P=ED.cats[i].pages[j];
-    return back()+'<h3>'+esc2(P.name)+'</h3>'+fld('name','اسم الصفحة',P.name)+fld('en','الاسم بالإنجليزي',P.en||'')+fld('text','النص',P.text||'',1)+imgBox(emSrc(P.em),'img:page:'+i+':'+j)+btnsForm(P.btns||(P.btns=[]),'btns.'+i+'.'+j)+bt('savepage:'+i+':'+j,'حفظ') }
+  function has(id){ return !!document.querySelector('#mbody [data-f="'+id+'"]') }
+  function readBtns(list){ list.forEach(function(B,n){ if(has('bt'+n)) B.t=val('bt'+n)||B.t; if(B.url!==undefined){ if(has('bu'+n)) B.url=val('bu'+n) } else if(has('bw'+n)) B.wa=val('bw'+n) }) }
+  var KL={info:'📄',folder:'📁',svc:'🛒'};
+  function kindOf(P){ return P.kind||'info' }
+  function pageRows(parent){ return kidsOf(parent).map(function(P,j){ var path=parent+'.'+j; return row(KL[kindOf(P)]+' '+P.name,tb('open:pg:'+path,'✏️')+tb('up:kids.'+parent+':'+j,'↑')+tb('dn:kids.'+parent+':'+j,'↓')+tb('del:kids.'+parent+':'+j,'🗑️','r')) }).join('') }
+  function addBtns(parent){ return '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'+tb('new:pg:'+parent+':info','➕ صفحة معلومات')+tb('new:pg:'+parent+':folder','➕ قسم فيه صفحات')+tb('new:pg:'+parent+':svc','➕ خدمة بأسعار')+'</div>' }
+  function tabs(list,cur,mk){ return '<div class="tabs">'+list.map(function(x){ return '<button type="button" class="tab" aria-pressed="'+(cur===x[0])+'" data-sed="'+mk(x[0])+'">'+x[1]+'</button>' }).join('')+'</div>' }
+  function svcForm(S,sref){
+    S.cats=(S.cats&&S.cats.length)?S.cats:[{name:'الباقات',items:[]}];
+    var m=S.idMode||'num', iw='style="margin:0;width:auto;'; 
+    var h='<h3 style="font-size:20px">شو بيطلب الموقع من الزبون؟</h3>'+tabs([['num','🔢 ID رقمي'],['txt','✍️ نص (إيميل/رقم…)'],['none','🚫 ولا شي']],m,function(x){return 'idm:'+sref+':'+x});
+    if(m==='txt') h+=fld('idl','اسم الحقل اللي بيشوفه الزبون (مثال: إيميل الحساب)',S.idLabel||'');
+    h+='<h3 style="font-size:20px">الباقات والأسعار</h3><p style="margin:0 0 8px;color:#9c9cb0;line-height:1.7">كل قسم (مثل: شهري / سنوي) فيه باقاته. السعر بالليرة السورية. الزبون بيطلبها وبيتخصم من رصيده.</p>';
+    S.cats.forEach(function(C,n){
+      h+='<div class="ord"><div style="display:flex;gap:6px;align-items:center"><input type="text" data-f="sc'+n+'" value="'+esc2(C.name)+'" placeholder="اسم القسم" '+iw+'flex:1">'+tb('delsec:'+sref+':'+n,'🗑️','r')+'</div>';
+      (C.items||[]).forEach(function(it,j){ h+='<div style="display:flex;gap:6px;margin-top:8px"><input type="text" data-f="in'+n+'_'+j+'" value="'+esc2(it[0])+'" '+iw+'flex:2"><input type="text" inputmode="decimal" dir="ltr" data-f="ip'+n+'_'+j+'" value="'+esc2(it[1])+'" '+iw+'flex:1">'+tb('delit:'+sref+':'+n+':'+j,'🗑️','r')+'</div>' });
+      h+='<div style="display:flex;gap:6px;margin-top:10px"><input type="text" data-f="an'+n+'" placeholder="اسم الباقة" '+iw+'flex:2"><input type="text" inputmode="decimal" dir="ltr" data-f="ap'+n+'" placeholder="السعر" '+iw+'flex:1">'+tb('additem:'+sref+':'+n,'➕')+'</div>'
+       +'<textarea data-f="bk'+n+'" rows="3" placeholder="أو الصق عدة باقات، كل سطر: الاسم | السعر" style="width:100%;margin-top:8px"></textarea>'+tb('bulk:'+sref+':'+n,'➕ إضافة الكل')+'</div>' });
+    return h+bt('addsec:'+sref,'➕ قسم باقات جديد') }
+  function svcCollect(S){ if(!S||!S.cats) return; if(has('idl')) S.idLabel=val('idl');
+    S.cats.forEach(function(C,n){ if(has('sc'+n)){ var t=val('sc'+n); if(t) C.name=t }
+      (C.items||[]).forEach(function(it,j){ if(has('in'+n+'_'+j)){ var nm=val('in'+n+'_'+j); if(nm) it[0]=nm } if(has('ip'+n+'_'+j)){ var x=parseFloat(digitsFix(val('ip'+n+'_'+j)).replace(',','.')); if(x>0) it[1]=x } }) }) }
+  function vPg(path){ var P=pg(path), k=kindOf(P),
+    h=back()+'<h3>'+KL[k]+' '+esc2(P.name)+'</h3>'+fld('name','الاسم',P.name)+fld('en','الاسم بالإنجليزي (يظهر على البطاقة)',P.en||'')+imgBox(emSrc(P.em),'img:pg:'+path)
+     +'<div class="lbl" style="margin:10px 0 6px;color:#9c9cb0">نوع هذه الصفحة</div>'+tabs([['info','📄 معلومات وأزرار'],['folder','📁 قسم فيه صفحات'],['svc','🛒 خدمة بأسعار']],k,function(x){return 'kind:'+path+':'+x});
+    if(k==='folder') h+='<h3 style="font-size:20px">الصفحات داخل «'+esc2(P.name)+'»</h3>'+pageRows(path)+addBtns(path);
+    else if(k==='svc') h+=svcForm(P.svc||(P.svc=newSvc()),'pg_'+path);
+    else h+=fld('text','النص',P.text||'',1)+btnsForm(P.btns||(P.btns=[]),'pbtns.'+path);
+    return h }
   function vDirect(i){ var P=ED.cats[i].direct; return back()+'<h3>'+esc2(P.name)+'</h3>'+fld('text','النص',P.text||'',1)+btnsForm(P.btns||(P.btns=[]),'dbtns.'+i)+bt('savedirect:'+i,'حفظ') }
   function vGame(ix){ var G=gm(ix), h=back()+'<h3>'+esc2(G.name)+'</h3>'+fld('name','اسم اللعبة',G.name)+fld('en','الاسم بالإنجليزي',G.en||'')+imgBox(emSrc(G.em),'img:game:'+ix);
-    if(ix>=NG0){ var k=ix-NG0; h+='<h3 style="font-size:20px">أقسام الباقات</h3>'+ED.extra[k].cats.map(function(C,n){ return '<div class="ord" style="display:flex;gap:6px;align-items:center"><input type="text" data-f="sc'+n+'" value="'+esc2(C.name)+'" style="margin:0;flex:1">'+tb('del:sub.'+k+':'+n,'🗑️','r')+'</div>' }).join('')+bt('addsub:'+k,'➕ قسم باقات جديد')+'<p style="color:#9c9cb0;line-height:1.7">أضف الباقات وأسعارها من لوحة الأدمن ← الباقات والأسعار.</p>' }
+    if(ix>=NG0) h+=svcForm(ED.extra[ix-NG0],'x_'+(ix-NG0));
     return h+bt('savegame:'+ix,'حفظ') }
   function vSoc(){ return back()+'<h3>السوشال ميديا</h3>'+ED.social.map(function(S,i){ return row(S.name,tb('open:socone:'+i,'✏️')+tb('up:social:'+i,'↑')+tb('dn:social:'+i,'↓')+tb('del:social:'+i,'🗑️','r')) }).join('') }
   function vSocOne(i){ var S=ED.social[i]; return back()+'<h3>'+esc2(S.name)+'</h3>'+fld('name','الاسم',S.name)+fld('en','الاسم بالإنجليزي',S.en||'')+imgBox(emSrc(S.em),'img:soc:'+i)+bt('savesoc:'+i,'حفظ') }
 
   function R(msg,err){
     var v=view[view.length-1], h='';
-    try{ if(v[0]==='home')h=vHome(); else if(v[0]==='cat')h=vCat(v[1]); else if(v[0]==='page')h=vPage(v[1],v[2]); else if(v[0]==='direct')h=vDirect(v[1]); else if(v[0]==='game')h=vGame(v[1]); else if(v[0]==='soc')h=vSoc(); else if(v[0]==='socone')h=vSocOne(v[1]); }catch(e){ h=back()+'<p class="msg">تعذّر عرض الصفحة</p>' }
+    try{ if(v[0]==='home')h=vHome(); else if(v[0]==='cat')h=vCat(v[1]); else if(v[0]==='pg')h=vPg(v[1]); else if(v[0]==='direct')h=vDirect(v[1]); else if(v[0]==='game')h=vGame(v[1]); else if(v[0]==='soc')h=vSoc(); else if(v[0]==='socone')h=vSocOne(v[1]); }catch(e){ h=back()+'<p class="msg">تعذّر عرض الصفحة</p>' }
+    h='<p class="msg" id="sedst" style="min-height:0;margin:0 0 4px"></p>'+h;
     if(msg) h='<p class="msg" style="color:'+(err?'#ff8a8a':'#3cea82')+'">'+esc2(msg)+'</p>'+h;
     showM(h); D('mbody').dataset.v='sed';
   }
-  function commit(msg){
-    return db.collection('config').doc('catalog').set({json:JSON.stringify(ED),at:firebase.firestore.FieldValue.serverTimestamp()})
-      .then(function(){ CT=cl(ED); return loadFS(needFS(ED)).then(function(){ apply(ED); R(msg||'تم الحفظ ✓') }) })
-      .catch(function(){ R('فشل الحفظ: تحقق من قواعد Firebase',1) }) }
+  function setSt(t,err){ var e=D('sedst'); if(e){ e.style.color=err?'#ff8a8a':(t&&t.indexOf('✓')>=0?'#3cea82':'#9c9cb0'); e.textContent=t||'' } }
+  // يقرأ ما كتبته بالحقول ويحطه بالبيانات (حتى ما يضيع لما تضغط أي زر)
+  function collect(){
+    var v=view[view.length-1]; if(!v||!ED) return;
+    try{
+      if(v[0]==='cat'){ var K=ED.cats[v[1]]; if(has('name')) K.name=val('name')||K.name; if(has('en')) K.en=val('en') }
+      else if(v[0]==='pg'){ var P=pg(v[1]); if(has('name')) P.name=val('name')||P.name; if(has('en')) P.en=val('en'); if(has('text')) P.text=val('text'); readBtns(P.btns||[]); if(kindOf(P)==='svc') svcCollect(P.svc) }
+      else if(v[0]==='direct'){ var Q=ED.cats[v[1]].direct; if(has('text')) Q.text=val('text'); readBtns(Q.btns||[]) }
+      else if(v[0]==='game'){ var ix=v[1], nm=has('name')?val('name'):'', en=has('en')?val('en'):'';
+        if(ix<NG0){ ED.gx[ix]=ED.gx[ix]||{}; if(nm)ED.gx[ix].name=nm; if(en)ED.gx[ix].en=en }
+        else { var X=ED.extra[ix-NG0]; if(nm)X.name=nm; if(en)X.en=en; svcCollect(X) } }
+      else if(v[0]==='socone'){ var S=ED.social[v[1]]; if(has('name')) S.name=val('name')||S.name; if(has('en')) S.en=val('en')||S.en }
+    }catch(e){}
+  }
+  function flush(){ collect(); if(ED && JSON.stringify(ED)!==LASTJ) return commit('',true) }
+  function commit(msg,silent){
+    var json=JSON.stringify(ED);
+    if(json.length>900000){ if(silent) setSt('حجم البيانات كبير (صور كثيرة)، احذف بعض الصور',1); else R('حجم البيانات كبير (صور كثيرة)، احذف أو بدّل بعض الصور.',1); return Promise.resolve() }
+    CT=cl(ED); apply(ED);                       // يظهر عندك فوراً بدون انتظار الإنترنت
+    if(silent) setSt('جاري الحفظ…'); else R(msg||'جاري الحفظ…');
+    var tid=++SAVING;
+    return Promise.all(PEND).then(function(){
+      var inl=Object.keys(INL), j2=json;          // صور ما انرفعت لمجموعة imgs: نحطها داخل الملف مباشرة
+      inl.forEach(function(id){ j2=j2.split('@FS:'+id).join(INL[id]) });
+      if(j2!==json){ if(j2.length>900000) throw new Error('BIG'); json=j2; ED=JSON.parse(json); CT=cl(ED) }
+      return db.collection('config').doc('catalog').set({json:json,at:firebase.firestore.FieldValue.serverTimestamp()}) })
+     .then(function(){ LASTJ=JSON.stringify(ED); if(tid===SAVING) setSt('تم الحفظ ✓') })
+     .catch(function(er){ setSt(er&&er.message==='BIG'?'الصور كبيرة، فعّل قاعدة imgs بالفايربيس أو قلّل الصور':'فشل الحفظ: تحقق من قواعد Firebase أو الإنترنت',1) }) }
+  // الصورة تنقص لحجم البطاقة (مربع 480) وتنحفظ صغيرة
   function pickImg(cb){
     var f=document.createElement('input'); f.type='file'; f.accept='image/*';
-    f.onchange=function(){ var file=f.files&&f.files[0]; if(!file) return; var r=new FileReader();
-      r.onload=function(){ var im=new Image(); im.onload=function(){
-        var k=Math.min(1,480/Math.max(im.width,im.height)), c=document.createElement('canvas'); c.width=Math.round(im.width*k); c.height=Math.round(im.height*k);
-        c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-        var d=c.toDataURL('image/webp',.82); if(d.indexOf('image/webp')<0) d=c.toDataURL('image/jpeg',.82);
-        var id=Math.random().toString(36).slice(2,10);
-        db.collection('imgs').doc(id).set({d:d}).then(function(){ FSC[id]=d; try{localStorage.setItem('fsi_'+id,d)}catch(e){} cb('@FS:'+id) }).catch(function(){ R('فشل رفع الصورة: أضف قاعدة imgs في Firebase (راجع الخطوات)',1) });
-      }; im.src=r.result }; r.readAsDataURL(file) };
+    f.onchange=function(){ var file=f.files&&f.files[0]; if(!file) return; setSt('جاري تجهيز الصورة…'); var r=new FileReader();
+      r.onerror=function(){ setSt('تعذّر قراءة الصورة',1) };
+      r.onload=function(){ var im=new Image(); im.onerror=function(){ setSt('صيغة الصورة غير مدعومة، جرّب JPG أو PNG',1) };
+        im.onload=function(){
+          var m=Math.min(im.width,im.height), S=Math.min(480,m), c=document.createElement('canvas'); c.width=S; c.height=S;
+          c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);
+          var d=c.toDataURL('image/webp',.82); if(d.indexOf('image/webp')<0) d=c.toDataURL('image/jpeg',.85);
+          var id=Math.random().toString(36).slice(2,10); FSC[id]=d; try{localStorage.setItem('fsi_'+id,d)}catch(e){}
+          PEND.push(db.collection('imgs').doc(id).set({d:d}).catch(function(){ INL[id]=d }));
+          cb('@FS:'+id) };
+        im.src=r.result };
+      r.readAsDataURL(file) };
     f.click() }
   function move(a,i,d){ var j=i+d; if(j<0||j>=a.length) return; var t=a[i]; a[i]=a[j]; a[j]=t }
   function act(s){
     var p=s.split(':'), a=p[0];
+    if(a!=='reset') collect();
+    if(a==='back'||a==='open') flush();
     if(a==='back'){ if(view.length>1){view.pop();R()} else adminM('hub'); return }
-    if(a==='open'){ var t=p[1]; if(t==='cat')view.push(['cat',+p[2]]); else if(t==='page')view.push(['page',+p[2],+p[3]]); else if(t==='direct')view.push(['direct',+p[2]]); else if(t==='game')view.push(['game',+p[2]]); else if(t==='soc')view.push(['soc']); else if(t==='socone')view.push(['socone',+p[2]]); R(); return }
+    if(a==='open'){ var t=p[1]; if(t==='cat')view.push(['cat',+p[2]]); else if(t==='pg')view.push(['pg',p[2]]); else if(t==='direct')view.push(['direct',+p[2]]); else if(t==='game')view.push(['game',+p[2]]); else if(t==='soc')view.push(['soc']); else if(t==='socone')view.push(['socone',+p[2]]); R(); return }
     if(a==='up'||a==='dn'){ move(ref(p[1]),+p[2],a==='up'?-1:1); commit(); return }
     if(a==='del'){ if(!confirm('تأكيد الحذف؟')) return; ref(p[1]).splice(+p[2],1); if(p[1]==='cats'&&view.length>1) view=[['home']]; commit('تم الحذف'); return }
     if(a==='hide'){ ED.cats[+p[1]].hide=!ED.cats[+p[1]].hide; commit(); return }
     if(a==='reset'){ if(!confirm('رجوع كل الأقسام للأصل؟ بتنحذف كل تعديلاتك على الأقسام.')) return; db.collection('config').doc('catalog').delete().then(function(){ CT=null; apply(seed()); ED=seed(); view=[['home']]; R('رجع الموقع للأصل ✓') }).catch(function(){ R('فشل',1) }); return }
     if(a==='new'){ var k=p[1];
       if(k==='catP'||k==='catG'){ var K={name:'قسم جديد',en:'NEW',em:'<b style="font-size:56px;line-height:1">✨</b>',games:[]}; if(k==='catP')K.pages=[]; ED.cats.push(K); view.push(['cat',ED.cats.length-1]); commit('تمت الإضافة، عدّل الاسم'); }
-      else if(k==='page'){ var i=+p[2]; ED.cats[i].pages.push({name:'صفحة جديدة',en:'NEW',em:'<b style="font-size:56px;line-height:1">✨</b>',text:'',btns:[]}); view.push(['page',i,ED.cats[i].pages.length-1]); commit('تمت الإضافة، عدّل الاسم'); }
+      else if(k==='pg'){ var par=p[2], kd=p[3], arr=kidsOf(par);
+        var NP={name:kd==='svc'?'خدمة جديدة':kd==='folder'?'قسم جديد':'صفحة جديدة',en:'NEW',em:'<b style="font-size:56px;line-height:1">'+(kd==='svc'?'🛒':kd==='folder'?'📁':'✨')+'</b>',kind:kd,text:'',btns:[]};
+        if(kd==='folder') NP.pages=[]; if(kd==='svc') NP.svc=newSvc();
+        arr.push(NP); view.push(['pg',par+'.'+(arr.length-1)]); commit('تمت الإضافة، عدّل الاسم'); }
       else if(k==='game'){ var c=+p[2]; ED.extra.push({name:'لعبة جديدة',en:'NEW GAME',em:'<b style="font-size:56px;line-height:1">🎮</b>',cats:[{name:'الباقات',items:[]}]}); var ix=NG0+ED.extra.length-1; ED.cats[c].games.push(ix); view.push(['game',ix]); commit('تمت الإضافة، عدّل الاسم'); }
       return }
+    if(a==='kind'){ var PK=pg(p[1]); PK.kind=p[2]; if(p[2]==='folder'&&!PK.pages) PK.pages=[]; if(p[2]==='svc'&&!PK.svc) PK.svc=newSvc(); commit(); return }
+    if(a==='idm'){ svcOf(p[1]).idMode=p[2]; commit(); return }
+    if(a==='addsec'){ svcOf(p[1]).cats.push({name:'قسم جديد',items:[]}); commit(); return }
+    if(a==='delsec'){ var S1=svcOf(p[1]); if(S1.cats.length<2){ setSt('لازم يضل قسم باقات واحد على الأقل',1); return } if(!confirm('حذف القسم وكل باقاته؟')) return; S1.cats.splice(+p[2],1); commit(); return }
+    if(a==='delit'){ svcOf(p[1]).cats[+p[2]].items.splice(+p[3],1); commit(); return }
+    if(a==='additem'){ var n1=+p[2], nm1=val('an'+n1), pr1=parseFloat(digitsFix(val('ap'+n1)).replace(',','.')); if(!nm1||!(pr1>0)){ setSt('اكتب اسم الباقة وسعرها',1); return } svcOf(p[1]).cats[n1].items.push([nm1,pr1]); commit(); return }
+    if(a==='bulk'){ var n2=+p[2], cnt=0; (val('bk'+n2)||'').split(/\n/).forEach(function(L){
+        L=digitsFix(L).replace(/(\d),(\d{3})(?!\d)/g,'$1$2').trim(); var m=/^(.*?)[\s|،,:\-–—]*([0-9]+(?:\.[0-9]+)?)\s*$/.exec(L);
+        if(m&&m[1].replace(/[|،,:\-–—\s]+$/,'').trim()){ svcOf(p[1]).cats[n2].items.push([m[1].replace(/[|،,:\-–—\s]+$/,'').trim(),parseFloat(m[2])]); cnt++ } });
+      if(!cnt){ setSt('ما فهمت السطور. اكتب كل سطر مثل: شهر واحد | 5000',1); return } commit(cnt+' باقة انضافت'); return }
     if(a==='readd'){ ED.cats[+p[1]].games.push(+p[2]); commit(); return }
     if(a==='addbtn'){ var l=ref(p[1]); l.push(p[2]==='url'?{t:'🔗 رابط',url:''}:{t:'💬 زر واتساب',wa:''}); commit(); return }
     if(a==='addsub'){ ED.extra[+p[1]].cats.push({name:'قسم جديد',items:[]}); commit(); return }
-    if(a==='img'){ var t2=p[1], x=+p[2], y=+p[3]; pickImg(function(tk){
+    if(a==='img'){ var t2=p[1], x=+p[2], y=+p[3]; pickImg(function(tk){ collect();
       if(t2==='cat') ED.cats[x].img=tk;
-      else if(t2==='page'){ var P=ED.cats[x].pages[y]; P.em=imgTag(tk,P.name); }
+      else if(t2==='pg'){ var PP=pg(p[2]); PP.em=imgTag(tk,PP.name); }
       else if(t2==='game'){ var G=gm(x); if(x<NG0){ ED.gx[x]=ED.gx[x]||{}; ED.gx[x].em=imgTag(tk,G.name) } else ED.extra[x-NG0].em=imgTag(tk,G.name) }
       else if(t2==='soc'){ var S=ED.social[x]; S.em=imgTag(tk,S.name,1) }
       commit('تم رفع الصورة ✓') }); return }
@@ -1862,13 +1965,14 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
       commit(); return }
     if(a==='savesoc'){ var S2=ED.social[+p[1]]; S2.name=val('name')||S2.name; S2.en=val('en')||S2.en; commit(); return }
   }
-  function openEditor(){ ED=cl(CT||seed()); ED.gx=ED.gx||{}; ED.extra=ED.extra||[]; view=[['home']]; R() }
+  function openEditor(){ ED=cl(CT||seed()); ED.gx=ED.gx||{}; ED.extra=ED.extra||[]; view=[['home']]; LASTJ=JSON.stringify(ED); R() }
   var mb=D('mbody');
   mb.addEventListener('click',function(e){
     var k=e.target.closest&&e.target.closest('[data-k="sed"]');
     if(k){ e.stopPropagation(); openEditor(); return }
     var t=e.target.closest&&e.target.closest('[data-sed]'); if(!t||mb.dataset.v!=='sed') return;
     act(t.getAttribute('data-sed')) },true);
+  mb.addEventListener('change',function(e){ if(mb.dataset.v!=='sed'||!e.target.matches||!e.target.matches('[data-f]')) return; flush() },true);
   window.SED={seed:seed,apply:apply,tok:tok,res:res,open:openEditor,act:act,_ed:function(){return ED},_ct:function(){return CT}};
 })();
 
