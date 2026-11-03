@@ -19,7 +19,7 @@
 <title>AL3M STOR — شحن ألعاب</title>
 <link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Russo+One&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script>window.IMG=window.IMG||{};</script>
-<script src="images.js?v=2"></script>
+<script src="images.js?v=3"></script>
 <script>try{if(localStorage.getItem("al3m_theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
 <style>
 :root{
@@ -1814,9 +1814,24 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
     if(typeof cat==='number'&&cat>=CATS.length) cat=0;
     if(typeof availRefresh==='function') availRefresh();
   }
+  // ترميم: صور انحفظت خربانة (src='undefined') بسبب عدم تحميل images.js وقت الحفظ
+  function bad(v){ return typeof v==='string' && (v==='undefined' || /src=['"]undefined['"]/.test(v)) }
+  function heal(ct){
+    var D={}, n=0;
+    (function idx(list){ (list||[]).forEach(function(o){ if(!o) return;
+      if(o.name){ D[o.name]=D[o.name]||{}; if(o.em&&!bad(o.em)) D[o.name].em=o.em; if(o.img&&!bad(o.img)) D[o.name].img=o.img }
+      if(o.pages) idx(o.pages); if(o.direct) idx([o.direct]) }) })(CATS0.concat(SOC0,G0));
+    (function fix(o){ if(Array.isArray(o)){ o.forEach(fix); return } if(!o||typeof o!=='object') return;
+      if(o.name&&D[o.name]){
+        if(bad(o.em)&&D[o.name].em){ o.em=tok(D[o.name].em); n++ }
+        if(bad(o.img)){ if(D[o.name].img) o.img=tok(D[o.name].img); else delete o.img; n++ } }
+      for(var k in o) if(o[k]&&typeof o[k]==='object') fix(o[k]) })(ct);
+    for(var i in (ct.gx||{})){ var x=ct.gx[i]; if(x&&bad(x.em)){ if(G0[i]) x.em=tok(G0[i].em); else delete x.em; n++ } }
+    return n }
   db.collection('config').doc('catalog').onSnapshot(function(s){
     if(!s.exists){ var was=CT; CT=null; if(was) apply(seed()); return }
     var c; try{c=JSON.parse(s.data().json)}catch(e){return}
+    try{ heal(c) }catch(e){}
     CT=c; apply(c);
     var need=needFS(c).filter(function(i){return !FSC[i]}); if(need.length) loadFS(need).then(function(){ if(CT===c) apply(c) });
   },function(){});
@@ -1934,6 +1949,7 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
   }
   function flush(){ collect(); if(ED && JSON.stringify(ED)!==LASTJ) return commit('',true) }
   function commit(msg,silent){
+    if(!IMG||!Object.keys(IMG).length){ var em0='ملف images.js ما انحمّل، فما رح أحفظ حتى لا تخرب الصور. تأكد إنه مرفوع بنفس مكان index.html وحدّث الصفحة.'; if(silent) setSt(em0,1); else R(em0,1); return Promise.resolve() }
     var json=JSON.stringify(ED);
     if(json.length>900000){ if(silent) setSt('حجم البيانات كبير (صور كثيرة)، احذف بعض الصور',1); else R('حجم البيانات كبير (صور كثيرة)، احذف أو بدّل بعض الصور.',1); return Promise.resolve() }
     CT=cl(ED); apply(ED);                       // يظهر عندك فوراً بدون انتظار الإنترنت
@@ -1957,7 +1973,7 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
           c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);
           var d=c.toDataURL('image/webp',.82); if(d.indexOf('image/webp')<0) d=c.toDataURL('image/jpeg',.85);
           var id=Math.random().toString(36).slice(2,10); FSC[id]=d; try{localStorage.setItem('fsi_'+id,d)}catch(e){}
-          PEND.push(db.collection('imgs').doc(id).set({d:d}).catch(function(){ INL[id]=d }));
+          PEND.push(Promise.race([db.collection('imgs').doc(id).set({d:d}), new Promise(function(_,no){ setTimeout(no,6000) })]).catch(function(){ INL[id]=d }));
           cb('@FS:'+id) };
         im.src=r.result };
       r.readAsDataURL(file) };
