@@ -1196,7 +1196,7 @@ function adminM(v){
       +admTile('ords','📦','الطلبات المعلّقة',pend.length)+admTile('tops','💳','طلبات الشحن',pendT.length)
       +admTile('find','🔎','بحث برقم الطلب')+admTile('bal','💰','تعديل رصيد زبون')
       +admTile('ban','⏳','حظر مؤقت')+admTile('pban','🚫','حظر دائم')+admTile('unb','✅','فك الحظر')+admTile('usr','👥','المستخدمون')
-      +admTile('bans','📋','قائمة المحظورين')+admTile('acc','🕵️','فحص حساب')+admTile('wrn','⚠️','تنبيه لمستخدم')+admTile('del','🗑️','حذف حساب')+admTile('edt','🛠️','الباقات والأسعار')
+      +admTile('bans','📋','قائمة المحظورين')+admTile('acc','🕵️','فحص حساب')+admTile('wrn','⚠️','تنبيه لمستخدم')+admTile('del','🗑️','حذف حساب')+admTile('edt','🛠️','الباقات والأسعار')+admTile('sed','🧩','محرّر الأقسام والموقع')
       +admTile('ntf','🔔','تجربة الإشعار')+admTile('prc','💲','تثبيت الأسعار')+'</div>';
   } else if(v==='ords'){
     h=bk+'<h3>الطلبات المعلّقة ('+pend.length+')</h3>'+(pend.length?pend.map(admOrdCard).join(''):'<p class="msg" style="color:#9c9cb0">لا يوجد طلبات معلّقة.</p>');
@@ -1725,6 +1725,153 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
     armed=false;history.back();
   });
 })();
+</script>
+<script>
+// ===== محرّر الموقع (أقسام / ألعاب / صفحات / سوشال) — يحفظ في config/catalog =====
+(function(){
+  if(typeof db==='undefined'||!db||typeof IMG==='undefined') return;
+  var NG0=GAMES.length, G0=GAMES.map(function(g){return {name:g.name,en:g.en,em:g.em}}),
+      CATS0=JSON.parse(JSON.stringify(CATS)), SOC0=JSON.parse(JSON.stringify(SOCIAL)),
+      CT=null, ED=null, FSC={}, view=[['home']];
+  function D(i){return document.getElementById(i)}
+  function cl(o){return JSON.parse(JSON.stringify(o))}
+  function walk(o,f){ if(Array.isArray(o)) return o.map(function(x){return walk(x,f)});
+    if(o&&typeof o==='object'){var r={};for(var k in o)r[k]=walk(o[k],f);return r}
+    return typeof o==='string'?f(o):o }
+  function tok(s){ for(var k in IMG){var v=IMG[k]; if(v&&s.indexOf(v)>=0) s=s.split(v).join('@IMG:'+k)} return s }
+  function res(s){ return s.replace(/@IMG:([a-z0-9_]+)/g,function(m,k){return IMG[k]||''}).replace(/@FS:([A-Za-z0-9]+)/g,function(m,i){return FSC[i]||''}) }
+  function seed(){ return {v:1,cats:walk(cl(CATS0),tok),social:walk(cl(SOC0),tok),gx:{},extra:[]} }
+  function needFS(ct){ var ids={}; JSON.stringify(ct).replace(/@FS:([A-Za-z0-9]+)/g,function(m,i){ids[i]=1}); return Object.keys(ids) }
+  function loadFS(ids){ return Promise.all(ids.map(function(id){
+    if(FSC[id]) return; var c=null; try{c=localStorage.getItem('fsi_'+id)}catch(e){}
+    if(c){FSC[id]=c;return}
+    return db.collection('imgs').doc(id).get().then(function(s){ if(s.exists){FSC[id]=s.data().d; try{localStorage.setItem('fsi_'+id,FSC[id])}catch(e){}} }).catch(function(){}) })) }
+  function apply(ct){
+    GAMES.length=NG0;
+    G0.forEach(function(o,i){GAMES[i].name=o.name;GAMES[i].en=o.en;GAMES[i].em=o.em});
+    for(var i in (ct.gx||{})){ var x=ct.gx[i]; if(GAMES[i]){ if(x.name)GAMES[i].name=x.name; if(x.en)GAMES[i].en=x.en; if(x.em)GAMES[i].em=res(x.em) } }
+    (ct.extra||[]).forEach(function(x){ GAMES.push({name:x.name,en:x.en,em:res(x.em||''),cats:cl(x.cats||[])}) });
+    var vis=walk(cl(ct.cats),res).filter(function(k){return !k.hide});
+    CATS.length=0; vis.forEach(function(k){CATS.push(k)});
+    SOCIAL.length=0; walk(cl(ct.social||[]),res).forEach(function(x){SOCIAL.push(x)});
+    if(typeof cat==='number'&&cat>=CATS.length) cat=0;
+    if(typeof availRefresh==='function') availRefresh();
+  }
+  db.collection('config').doc('catalog').onSnapshot(function(s){
+    if(!s.exists){ var was=CT; CT=null; if(was) apply(seed()); return }
+    var c; try{c=JSON.parse(s.data().json)}catch(e){return}
+    CT=c; loadFS(needFS(c)).then(function(){apply(c)});
+  },function(){});
+
+  // ---------- واجهة المحرّر ----------
+  function esc2(s){return esc(s==null?'':s)}
+  function row(name,btns,sub){ return '<div class="ord" style="display:flex;align-items:center;gap:6px;padding:10px 12px"><b style="flex:1;font-size:17px;word-break:break-word">'+esc2(name)+(sub?'<small style="display:block;color:#9c9cb0;font-weight:500">'+esc2(sub)+'</small>':'')+'</b>'+btns+'</div>' }
+  function tb(a,t,cls){ return '<button class="mb '+(cls||'g')+'" style="width:auto;margin:0;padding:8px 11px" data-sed="'+a+'" type="button">'+t+'</button>' }
+  function bt(a,t,cls){ return '<button class="mb '+(cls||'')+'" data-sed="'+a+'" type="button">'+t+'</button>' }
+  function back(){ return '<button class="bk" data-sed="back" type="button">← رجوع</button>' }
+  function fld(id,label,val,ta){ return '<label class="lbl" style="display:block;margin:6px 0 4px;color:#9c9cb0">'+label+'</label>'+(ta?'<textarea data-f="'+id+'" rows="4" style="width:100%">'+esc2(val)+'</textarea>':'<input type="text" data-f="'+id+'" value="'+esc2(val)+'">') }
+  function val(id){ var e=document.querySelector('#mbody [data-f="'+id+'"]'); return e?e.value.trim():'' }
+  function emSrc(em){ var m=/src='([^']*)'/.exec(em||''); return m?m[1]:'' }
+  function imgBox(tk,a){ var u=res(tk||''); return '<div style="display:flex;align-items:center;gap:12px;margin:10px 0">'+(u?'<img src="'+u+'" alt="" style="width:84px;height:84px;object-fit:cover;border-radius:14px;box-shadow:0 0 0 2px rgba(243,191,78,.4)">':'<div style="width:84px;height:84px;border-radius:14px;background:#242435;display:grid;place-items:center;font-size:30px">🖼️</div>')+'<button class="mb g" style="margin:0" data-sed="'+a+'" type="button">📷 تغيير الصورة</button></div>' }
+  function imgTag(tk,alt,lg){ return "<img "+(lg?"class='lg' ":"")+"src='"+tk+"' alt='"+String(alt||'').replace(/'/g,'')+"'>" }
+  function ref(p){ var a=p.split('.'); if(a[0]==='cats')return ED.cats; if(a[0]==='social')return ED.social;
+    if(a[0]==='pages')return ED.cats[+a[1]].pages; if(a[0]==='games')return ED.cats[+a[1]].games;
+    if(a[0]==='btns')return ED.cats[+a[1]].pages[+a[2]].btns; if(a[0]==='dbtns')return ED.cats[+a[1]].direct.btns;
+    if(a[0]==='sub')return ED.extra[+a[1]].cats; return [] }
+  function gm(idx){ return idx<NG0?{name:(ED.gx[idx]&&ED.gx[idx].name)||G0[idx].name,en:(ED.gx[idx]&&ED.gx[idx].en)||G0[idx].en,em:(ED.gx[idx]&&ED.gx[idx].em)||G0[idx].em}:ED.extra[idx-NG0] }
+
+  function vHome(){
+    var h='<h3>محرّر الموقع</h3><p style="margin:0 0 10px;color:#9c9cb0;line-height:1.7">كل تغيير بيتحفظ فوراً وبيظهر للزبائن. أسعار الباقات وتوفرها من زر "الباقات والأسعار".</p><h3 style="font-size:20px">الأقسام الرئيسية</h3>';
+    h+=ED.cats.map(function(K,i){ return row(K.name+(K.hide?' (مخفي)':''),tb('open:cat:'+i,'✏️')+tb('up:cats:'+i,'↑')+tb('dn:cats:'+i,'↓')+tb('hide:'+i,K.hide?'👁':'🚫')+tb('del:cats:'+i,'🗑️','r')) }).join('');
+    h+=bt('new:catP','➕ قسم خدمات (صفحات)')+bt('new:catG','➕ قسم ألعاب')+bt('open:soc:0','🔗 السوشال ميديا','g')+bt('reset','↩️ استرجاع الموقع الأصلي','r');
+    return h }
+  function vCat(i){
+    var K=ED.cats[i], h=back()+'<h3>'+esc2(K.name)+'</h3>'+fld('name','اسم القسم',K.name)+fld('en','الاسم بالإنجليزي (يظهر على البطاقة)',K.en||'')+imgBox(K.img,'img:cat:'+i)+bt('savecat:'+i,'حفظ');
+    if(K.social) h+=bt('open:soc:0','فتح السوشال ميديا ›','g');
+    else if(K.pages){ h+='<h3 style="font-size:20px">الصفحات</h3>'+K.pages.map(function(P,j){ return row(P.name,tb('open:page:'+i+':'+j,'✏️')+tb('up:pages.'+i+':'+j,'↑')+tb('dn:pages.'+i+':'+j,'↓')+tb('del:pages.'+i+':'+j,'🗑️','r')) }).join('')+bt('new:page:'+i,'➕ صفحة جديدة') }
+    else if(K.direct){ h+=bt('open:direct:'+i,'تعديل نص وأزرار الصفحة ›','g') }
+    else { var gl=K.games||[]; h+='<h3 style="font-size:20px">الألعاب</h3>'+gl.map(function(ix,j){ return row(gm(ix).name,tb('open:game:'+ix,'✏️')+tb('up:games.'+i+':'+j,'↑')+tb('dn:games.'+i+':'+j,'↓')+tb('del:games.'+i+':'+j,'🗑️','r')) }).join('')+bt('new:game:'+i,'➕ لعبة جديدة');
+      var shown={}; ED.cats.forEach(function(k){(k.games||[]).forEach(function(x){shown[x]=1})});
+      var hid=[]; for(var g=0;g<NG0+ED.extra.length;g++) if(!shown[g]) hid.push(g);
+      if(hid.length) h+='<h3 style="font-size:18px">ألعاب محذوفة (اضغط لإرجاعها)</h3>'+hid.map(function(g){return tb('readd:'+i+':'+g,'↩️ '+esc2(gm(g).name))}).join(' '); }
+    return h }
+  function btnsForm(list,p){
+    return '<h3 style="font-size:20px">الأزرار</h3>'+list.map(function(B,n){
+      return '<div class="ord"><input type="text" data-f="bt'+n+'" value="'+esc2(B.t)+'" placeholder="نص الزر">'+(B.url!==undefined?'<input type="text" dir="ltr" data-f="bu'+n+'" value="'+esc2(B.url)+'" placeholder="رابط">':'<textarea data-f="bw'+n+'" rows="2" style="width:100%" placeholder="رسالة واتساب الجاهزة">'+esc2(B.wa||'')+'</textarea>')+'<div style="display:flex;gap:8px">'+tb('del:'+p+':'+n,'🗑️ حذف الزر','r')+'</div></div>' }).join('')
+      +'<div style="display:flex;gap:8px">'+tb('addbtn:'+p+':wa','➕ زر واتساب')+tb('addbtn:'+p+':url','➕ زر رابط')+'</div>' }
+  function readBtns(list){ list.forEach(function(B,n){ B.t=val('bt'+n)||B.t; if(B.url!==undefined) B.url=val('bu'+n); else B.wa=val('bw'+n) }) }
+  function vPage(i,j){ var P=ED.cats[i].pages[j];
+    return back()+'<h3>'+esc2(P.name)+'</h3>'+fld('name','اسم الصفحة',P.name)+fld('en','الاسم بالإنجليزي',P.en||'')+fld('text','النص',P.text||'',1)+imgBox(emSrc(P.em),'img:page:'+i+':'+j)+btnsForm(P.btns||(P.btns=[]),'btns.'+i+'.'+j)+bt('savepage:'+i+':'+j,'حفظ') }
+  function vDirect(i){ var P=ED.cats[i].direct; return back()+'<h3>'+esc2(P.name)+'</h3>'+fld('text','النص',P.text||'',1)+btnsForm(P.btns||(P.btns=[]),'dbtns.'+i)+bt('savedirect:'+i,'حفظ') }
+  function vGame(ix){ var G=gm(ix), h=back()+'<h3>'+esc2(G.name)+'</h3>'+fld('name','اسم اللعبة',G.name)+fld('en','الاسم بالإنجليزي',G.en||'')+imgBox(emSrc(G.em),'img:game:'+ix);
+    if(ix>=NG0){ var k=ix-NG0; h+='<h3 style="font-size:20px">أقسام الباقات</h3>'+ED.extra[k].cats.map(function(C,n){ return '<div class="ord" style="display:flex;gap:6px;align-items:center"><input type="text" data-f="sc'+n+'" value="'+esc2(C.name)+'" style="margin:0;flex:1">'+tb('del:sub.'+k+':'+n,'🗑️','r')+'</div>' }).join('')+bt('addsub:'+k,'➕ قسم باقات جديد')+'<p style="color:#9c9cb0;line-height:1.7">أضف الباقات وأسعارها من لوحة الأدمن ← الباقات والأسعار.</p>' }
+    return h+bt('savegame:'+ix,'حفظ') }
+  function vSoc(){ return back()+'<h3>السوشال ميديا</h3>'+ED.social.map(function(S,i){ return row(S.name,tb('open:socone:'+i,'✏️')+tb('up:social:'+i,'↑')+tb('dn:social:'+i,'↓')+tb('del:social:'+i,'🗑️','r')) }).join('') }
+  function vSocOne(i){ var S=ED.social[i]; return back()+'<h3>'+esc2(S.name)+'</h3>'+fld('name','الاسم',S.name)+fld('en','الاسم بالإنجليزي',S.en||'')+imgBox(emSrc(S.em),'img:soc:'+i)+bt('savesoc:'+i,'حفظ') }
+
+  function R(msg,err){
+    var v=view[view.length-1], h='';
+    try{ if(v[0]==='home')h=vHome(); else if(v[0]==='cat')h=vCat(v[1]); else if(v[0]==='page')h=vPage(v[1],v[2]); else if(v[0]==='direct')h=vDirect(v[1]); else if(v[0]==='game')h=vGame(v[1]); else if(v[0]==='soc')h=vSoc(); else if(v[0]==='socone')h=vSocOne(v[1]); }catch(e){ h=back()+'<p class="msg">تعذّر عرض الصفحة</p>' }
+    if(msg) h='<p class="msg" style="color:'+(err?'#ff8a8a':'#3cea82')+'">'+esc2(msg)+'</p>'+h;
+    showM(h); D('mbody').dataset.v='sed';
+  }
+  function commit(msg){
+    return db.collection('config').doc('catalog').set({json:JSON.stringify(ED),at:firebase.firestore.FieldValue.serverTimestamp()})
+      .then(function(){ CT=cl(ED); return loadFS(needFS(ED)).then(function(){ apply(ED); R(msg||'تم الحفظ ✓') }) })
+      .catch(function(){ R('فشل الحفظ: تحقق من قواعد Firebase',1) }) }
+  function pickImg(cb){
+    var f=document.createElement('input'); f.type='file'; f.accept='image/*';
+    f.onchange=function(){ var file=f.files&&f.files[0]; if(!file) return; var r=new FileReader();
+      r.onload=function(){ var im=new Image(); im.onload=function(){
+        var k=Math.min(1,480/Math.max(im.width,im.height)), c=document.createElement('canvas'); c.width=Math.round(im.width*k); c.height=Math.round(im.height*k);
+        c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+        var d=c.toDataURL('image/webp',.82); if(d.indexOf('image/webp')<0) d=c.toDataURL('image/jpeg',.82);
+        var id=Math.random().toString(36).slice(2,10);
+        db.collection('imgs').doc(id).set({d:d}).then(function(){ FSC[id]=d; try{localStorage.setItem('fsi_'+id,d)}catch(e){} cb('@FS:'+id) }).catch(function(){ R('فشل رفع الصورة: أضف قاعدة imgs في Firebase (راجع الخطوات)',1) });
+      }; im.src=r.result }; r.readAsDataURL(file) };
+    f.click() }
+  function move(a,i,d){ var j=i+d; if(j<0||j>=a.length) return; var t=a[i]; a[i]=a[j]; a[j]=t }
+  function act(s){
+    var p=s.split(':'), a=p[0];
+    if(a==='back'){ if(view.length>1){view.pop();R()} else adminM('hub'); return }
+    if(a==='open'){ var t=p[1]; if(t==='cat')view.push(['cat',+p[2]]); else if(t==='page')view.push(['page',+p[2],+p[3]]); else if(t==='direct')view.push(['direct',+p[2]]); else if(t==='game')view.push(['game',+p[2]]); else if(t==='soc')view.push(['soc']); else if(t==='socone')view.push(['socone',+p[2]]); R(); return }
+    if(a==='up'||a==='dn'){ move(ref(p[1]),+p[2],a==='up'?-1:1); commit(); return }
+    if(a==='del'){ if(!confirm('تأكيد الحذف؟')) return; ref(p[1]).splice(+p[2],1); if(p[1]==='cats'&&view.length>1) view=[['home']]; commit('تم الحذف'); return }
+    if(a==='hide'){ ED.cats[+p[1]].hide=!ED.cats[+p[1]].hide; commit(); return }
+    if(a==='reset'){ if(!confirm('رجوع كل الأقسام للأصل؟ بتنحذف كل تعديلاتك على الأقسام.')) return; db.collection('config').doc('catalog').delete().then(function(){ CT=null; apply(seed()); ED=seed(); view=[['home']]; R('رجع الموقع للأصل ✓') }).catch(function(){ R('فشل',1) }); return }
+    if(a==='new'){ var k=p[1];
+      if(k==='catP'||k==='catG'){ var K={name:'قسم جديد',en:'NEW',em:'<b style="font-size:56px;line-height:1">✨</b>',games:[]}; if(k==='catP')K.pages=[]; ED.cats.push(K); view.push(['cat',ED.cats.length-1]); commit('تمت الإضافة، عدّل الاسم'); }
+      else if(k==='page'){ var i=+p[2]; ED.cats[i].pages.push({name:'صفحة جديدة',en:'NEW',em:'<b style="font-size:56px;line-height:1">✨</b>',text:'',btns:[]}); view.push(['page',i,ED.cats[i].pages.length-1]); commit('تمت الإضافة، عدّل الاسم'); }
+      else if(k==='game'){ var c=+p[2]; ED.extra.push({name:'لعبة جديدة',en:'NEW GAME',em:'<b style="font-size:56px;line-height:1">🎮</b>',cats:[{name:'الباقات',items:[]}]}); var ix=NG0+ED.extra.length-1; ED.cats[c].games.push(ix); view.push(['game',ix]); commit('تمت الإضافة، عدّل الاسم'); }
+      return }
+    if(a==='readd'){ ED.cats[+p[1]].games.push(+p[2]); commit(); return }
+    if(a==='addbtn'){ var l=ref(p[1]); l.push(p[2]==='url'?{t:'🔗 رابط',url:''}:{t:'💬 زر واتساب',wa:''}); commit(); return }
+    if(a==='addsub'){ ED.extra[+p[1]].cats.push({name:'قسم جديد',items:[]}); commit(); return }
+    if(a==='img'){ var t2=p[1], x=+p[2], y=+p[3]; pickImg(function(tk){
+      if(t2==='cat') ED.cats[x].img=tk;
+      else if(t2==='page'){ var P=ED.cats[x].pages[y]; P.em=imgTag(tk,P.name); }
+      else if(t2==='game'){ var G=gm(x); if(x<NG0){ ED.gx[x]=ED.gx[x]||{}; ED.gx[x].em=imgTag(tk,G.name) } else ED.extra[x-NG0].em=imgTag(tk,G.name) }
+      else if(t2==='soc'){ var S=ED.social[x]; S.em=imgTag(tk,S.name,1) }
+      commit('تم رفع الصورة ✓') }); return }
+    if(a==='savecat'){ var K2=ED.cats[+p[1]]; K2.name=val('name')||K2.name; K2.en=val('en'); commit(); return }
+    if(a==='savepage'){ var P2=ED.cats[+p[1]].pages[+p[2]]; P2.name=val('name')||P2.name; P2.en=val('en'); P2.text=val('text'); readBtns(P2.btns); commit(); return }
+    if(a==='savedirect'){ var P3=ED.cats[+p[1]].direct; P3.text=val('text'); readBtns(P3.btns); commit(); return }
+    if(a==='savegame'){ var ix2=+p[1], nm=val('name'), en=val('en');
+      if(ix2<NG0){ ED.gx[ix2]=ED.gx[ix2]||{}; if(nm)ED.gx[ix2].name=nm; if(en)ED.gx[ix2].en=en }
+      else { var X=ED.extra[ix2-NG0]; if(nm)X.name=nm; if(en)X.en=en; X.cats.forEach(function(C,n){ var v=val('sc'+n); if(v)C.name=v }) }
+      commit(); return }
+    if(a==='savesoc'){ var S2=ED.social[+p[1]]; S2.name=val('name')||S2.name; S2.en=val('en')||S2.en; commit(); return }
+  }
+  function openEditor(){ ED=cl(CT||seed()); ED.gx=ED.gx||{}; ED.extra=ED.extra||[]; view=[['home']]; R() }
+  var mb=D('mbody');
+  mb.addEventListener('click',function(e){
+    var k=e.target.closest&&e.target.closest('[data-k="sed"]');
+    if(k){ e.stopPropagation(); openEditor(); return }
+    var t=e.target.closest&&e.target.closest('[data-sed]'); if(!t||mb.dataset.v!=='sed') return;
+    act(t.getAttribute('data-sed')) },true);
+  window.SED={seed:seed,apply:apply,tok:tok,res:res,open:openEditor,act:act,_ed:function(){return ED},_ct:function(){return CT}};
+})();
+
 </script>
 </body>
 </html>
