@@ -977,12 +977,19 @@ if (fbOK){
 }
 if(!fbOK){bootStep('auth');bootStep('prices')}
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);try{if(navigator.vibrate)navigator.vibrate(150)}catch(e){}setTimeout(function(){d.remove()},7000)}
-function notifyChg(k,arr){var cur={};arr.forEach(function(o){cur[o.id]=o.status});
-  if(lastSt[k]){arr.forEach(function(o){var was=lastSt[k][o.id];if(was&&was!==o.status){
-    if(o.status==='accepted')toast('✅ تم تنفيذ طلبك: '+o.pkg);
-    else if(o.status==='approved')toast('✅ تمت إضافة رصيدك');
-    else if(o.status==='rejected')toast('❌ '+(k==='o'?'تم رفض طلبك: '+o.pkg+' (أُرجع رصيدك)':'تم رفض طلب الشحن')+(o.note?' — '+o.note:''))}})}
-  lastSt[k]=cur}
+function notifyChg(k,arr){
+  var cur={}; arr.forEach(function(o){cur[o.id]=o.status});
+  if(lastSt[k]) arr.forEach(function(o){
+    var was=lastSt[k][o.id]; if(!was||was===o.status) return;
+    var ntTitle='AL3M STOR', ntBody='';
+    if(o.status==='accepted'){ntBody='✅ تم تنفيذ طلبك: '+o.pkg;toast(ntBody)}
+    else if(o.status==='approved'){ntBody='✅ تمت إضافة رصيدك';toast(ntBody)}
+    else if(o.status==='rejected'){ntBody='❌ '+(k==='o'?'تم رفض طلبك: '+o.pkg+' (أُرجع رصيدك)':'تم رفض طلب الشحن')+(o.note?' — '+o.note:'');toast(ntBody)}
+    if(ntBody) browserNotice(ntTitle,ntBody,o.id+':'+o.status);
+  });
+  lastSt[k]=cur;
+}
+function browserNotice(title,body,tag){try{if('Notification' in window&&Notification.permission==='granted'&&!document.hidden){new Notification(title,{body:body,icon:LOGO||undefined,tag:tag||'al3m-status'})}}catch(e){}}
 function needFb(){ if(!fbOK){showM('<h3>غير مفعّل</h3><p>أضف إعدادات Firebase في الكود أولاً.</p>');return true} return false }
 
 var EYE='<svg viewBox="0 0 24 24"><path d="M12 5C7 5 2.7 8.1 1 12c1.7 3.9 6 7 11 7s9.3-3.1 11-7c-1.7-3.9-6-7-11-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>',
@@ -1020,11 +1027,11 @@ function seenKey(){ return 'al3m_seen_'+(me?me.uid:'') }
 function seenMap(){ try{return JSON.parse(localStorage.getItem(seenKey())||'{}')}catch(e){return {}} }
 function notifList(){
   var a=[], b=banInfo();
-  if(b) a.push({k:'ban:'+(b.until||'p'),t:'🚫 '+banText(b),ban:1,u:b.until||0});
-  mineW.forEach(function(w){ a.push({k:'w:'+w.id,t:'⚠️ تحذير من الإدارة: '+w.text}) });
-  mine.forEach(function(o){ if(o.status==='accepted') a.push({k:o.id+':a',t:'✅ تم تنفيذ طلبك: '+o.pkg}); else if(o.status==='rejected') a.push({k:o.id+':r',t:'❌ تم رفض طلبك: '+o.pkg+' (أُرجع رصيدك)'+(o.note?' — '+o.note:'')}) });
-  mineT.forEach(function(o){ if(o.status==='approved') a.push({k:o.id+':a',t:'✅ تمت إضافة رصيدك ('+mm(o.amount,o.cur)+')'}); else if(o.status==='rejected') a.push({k:o.id+':r',t:'❌ تم رفض طلب الشحن'+(o.note?' — '+o.note:'')}) });
-  return a.slice(0,40);
+  if(b) a.push({k:'ban:'+(b.until||'p'),t:'🚫 '+banText(b),ban:1,u:b.until||0,at:b.until||Date.now()});
+  mineW.forEach(function(w){ a.push({k:'w:'+w.id,t:'⚠️ تحذير من الإدارة: '+w.text,at:tsMs(w.at)||Date.now()}) });
+  mine.forEach(function(o){ if(o.status==='accepted') a.push({k:o.id+':a',t:'✅ تم تنفيذ طلبك: '+o.pkg,at:tsMs(o.doneAt)||tsMs(o.createdAt)}); else if(o.status==='rejected') a.push({k:o.id+':r',t:'❌ تم رفض طلبك: '+o.pkg+' (أُرجع رصيدك)'+(o.note?' — '+o.note:''),at:tsMs(o.doneAt)||tsMs(o.createdAt)}) });
+  mineT.forEach(function(o){ if(o.status==='approved') a.push({k:o.id+':a',t:'✅ تمت إضافة رصيدك ('+mm(o.amount,o.cur)+')',at:tsMs(o.doneAt)||tsMs(o.createdAt)}); else if(o.status==='rejected') a.push({k:o.id+':r',t:'❌ تم رفض طلب الشحن'+(o.note?' — '+o.note:''),at:tsMs(o.doneAt)||tsMs(o.createdAt)}) });
+  return a.sort(function(x,y){return (y.at||0)-(x.at||0)}).slice(0,40);
 }
 function bellBadge(){ var n=0; if(me){ var s=seenMap(); notifList().forEach(function(x){ if(!s[x.k]) n++ }) } var el=$('bellN'); if(el){ el.textContent=n; el.hidden=!n } }
 function notifM(){
@@ -1356,9 +1363,14 @@ function setNav(id){['nOrd','nHome','nTop','nAcc','nAdm'].forEach(function(i){$(
 function refO(){if(!$('modal').hidden){ var v=$('mbody').dataset.v; if(v==='orders')ordersM(); else if(v==='od'&&odCur)ordDetail(odCur.id,odCur.k) }}
 function bdg(st,map){var c=(st==='accepted'||st==='approved')?'ok':st==='rejected'?'no':'wt';return '<span class="badge '+c+'">'+(map[st]||"")+'</span>'}
 function ordersM(){
-  var h='<h3>طلباتي</h3>';
-  h+=mine.length?mine.slice(0,30).map(function(o){return '<div class="ord" data-od="'+o.id+'" data-k="o" style="cursor:pointer"><b>'+(o.no?'#'+esc(o.no)+' · ':'')+esc(o.game)+' — '+esc(o.pkg)+'</b>'+(o.ltype?'<small>ربط: '+esc(o.ltype)+'</small>':(o.pid?'<small>ID: '+esc(o.pid)+'</small>':''))+'<div class="pr">'+money(o.price)+'</div>'+bdg(o.status,ST)+(o.note?'<small>السبب: '+esc(o.note)+'</small>':'')+'<small style="color:var(--gold-l);margin-top:6px">🧾 عرض الفاتورة ›</small></div>'}).join(""):'<p class="msg" style="color:#9c9cb0;font-size:17px">لا يوجد طلبات بعد.</p>';
-  if(mineT.length) h+='<h3 style="margin-top:20px;font-size:22px">طلبات الشحن</h3>'+mineT.slice(0,20).map(function(o){return '<div class="ord" data-od="'+o.id+'" data-k="t" style="cursor:pointer"><b>'+mm(o.amount,o.cur)+' — '+esc(o.method)+'</b>'+bdg(o.status,STT)+(o.note?'<small>السبب: '+esc(o.note)+'</small>':'')+'</div>'}).join("");
+  var h='<h3>طلباتي</h3>', all=[];
+  mine.forEach(function(o){all.push({o:o,k:'o',at:tsMs(o.createdAt)})});
+  mineT.forEach(function(o){all.push({o:o,k:'t',at:tsMs(o.createdAt)})});
+  all.sort(function(a,b){return (b.at||0)-(a.at||0)});
+  h+=all.length?all.slice(0,50).map(function(x){var o=x.o,isT=x.k==='t';
+    var title=isT?('💰 تعبئة رصيد — '+mm(o.amount,o.cur)+' · '+esc(o.method)):(('🎮 '+(o.no?'#'+esc(o.no)+' · ':'')+esc(o.game)+' — '+esc(o.pkg)));
+    var meta=isT?('رقم العملية: '+esc(o.txn||'—')):(o.ltype?('ربط: '+esc(o.ltype)+' · '+esc(o.lacc||'')):(o.pid?'ID: '+esc(o.pid):''));
+    return '<div class="ord" data-od="'+o.id+'" data-k="'+x.k+'" style="cursor:pointer"><b>'+title+'</b>'+(meta?'<small>'+meta+'</small>':'')+(isT?'<div class="pr">'+mm(o.amount,o.cur)+'</div>':'<div class="pr">'+money(o.price)+'</div>')+bdg(o.status,isT?STT:ST)+(o.note?'<small>السبب: '+esc(o.note)+'</small>':'')+'<small style="color:var(--gold-l);margin-top:6px">🧾 عرض التفاصيل ›</small></div>'}).join(''):'<p class="msg" style="color:#9c9cb0;font-size:17px">لا يوجد طلبات بعد.</p>';
   showM(h); $('mbody').dataset.v='orders'; setNav('nOrd');
   [].forEach.call($('mbody').querySelectorAll('[data-od]'),function(el){el.onclick=function(){ordDetail(el.dataset.od,el.dataset.k)}});
 }
@@ -2148,6 +2160,25 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
     var t=e.target.closest&&e.target.closest('[data-set]'); if(!t||mb.dataset.v!=='set') return;
     act(t.getAttribute('data-set')) },true);
   window.SETS={apply:A,open:function(){init();V()},act:act,_ed:function(){return ED}};
+})();
+</script>
+
+<style>
+#al3mNotifyAsk{position:fixed;z-index:99999;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(5px)}
+#al3mNotifyAsk .na-card{width:min(420px,100%);background:#171722;border:1px solid rgba(243,191,78,.55);border-radius:20px;padding:22px;text-align:center;box-shadow:0 18px 60px #0009;color:#fff}
+#al3mNotifyAsk .na-card h3{font-size:23px;margin:8px 0;color:#f3bf4e}#al3mNotifyAsk .na-card p{color:#cfcfe0;line-height:1.8;margin:8px 0 16px}
+#al3mNotifyAsk .na-btn{width:100%;border:0;border-radius:12px;padding:13px;font:800 16px Tajawal,sans-serif;cursor:pointer;margin-top:8px;background:linear-gradient(135deg,#e10d2b,#a90019);color:#fff}
+#al3mNotifyAsk .na-btn.alt{background:#30303d;color:#eee}
+</style>
+<div id="al3mNotifyAsk" role="dialog" aria-modal="true" aria-labelledby="naTitle"><div class="na-card"><div style="font-size:42px">🔔</div><h3 id="naTitle">فعّل إشعارات AL3M STOR</h3><p>حتى يصلك إشعار على هاتفك عند تنفيذ طلبك أو إضافة الرصيد، فعّل إشعارات الموقع.</p><button class="na-btn" id="naEnable">تفعيل الإشعارات</button><button class="na-btn alt" id="naLater">لاحقاً</button><small id="naMsg" style="display:block;color:#ffb4b4;margin-top:10px"></small></div></div>
+<script>
+(function(){
+  function showAsk(){var box=document.getElementById('al3mNotifyAsk');if(!box||!('Notification' in window)||Notification.permission==='granted')return;box.style.display='flex';}
+  function hideAsk(){var box=document.getElementById('al3mNotifyAsk');if(box)box.style.display='none';}
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(showAsk,1600)});
+  var en=document.getElementById('naEnable'),later=document.getElementById('naLater');
+  if(en)en.onclick=function(){if(!('Notification' in window)){document.getElementById('naMsg').textContent='متصفحك لا يدعم إشعارات المواقع.';return;} Notification.requestPermission().then(function(p){if(p==='granted'){hideAsk();try{new Notification('AL3M STOR',{body:'تم تفعيل الإشعارات بنجاح ❤️'})}catch(e){}}else if(p==='denied'){document.getElementById('naMsg').textContent='تم رفض الإذن. فعّله من إعدادات الموقع في المتصفح، وسيظهر هذا الطلب مجدداً عند دخولك.'}else{document.getElementById('naMsg').textContent='لم يتم تفعيل الإشعارات بعد.'}}).catch(function(){document.getElementById('naMsg').textContent='تعذر طلب الإذن. افتح الموقع عبر HTTPS في Chrome.'})};
+  if(later)later.onclick=hideAsk;
 })();
 </script>
 </body>
