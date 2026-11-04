@@ -1962,22 +1962,37 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
       return db.collection('config').doc('catalog').set({json:json,at:firebase.firestore.FieldValue.serverTimestamp()}) })
      .then(function(){ LASTJ=JSON.stringify(ED); if(tid===SAVING) setSt('تم الحفظ ✓'); pinDyn() })
      .catch(function(er){ setSt(er&&er.message==='BIG'?'الصور كبيرة، فعّل قاعدة imgs بالفايربيس أو قلّل الصور':'فشل الحفظ: تحقق من قواعد Firebase أو الإنترنت',1) }) }
-  // الصورة تنقص لحجم البطاقة (مربع 480) وتنحفظ صغيرة
+  // رفع الصور: ضغطها ثم حفظها مباشرة داخل بيانات القسم/الصفحة.
+  // هذا يتجنب الاعتماد على صلاحيات مجموعة Firestore منفصلة باسم imgs.
   function pickImg(cb){
     var f=document.createElement('input'); f.type='file'; f.accept='image/*';
-    f.onchange=function(){ var file=f.files&&f.files[0]; if(!file) return; setSt('جاري تجهيز الصورة…'); var r=new FileReader();
+    f.onchange=function(){
+      var file=f.files&&f.files[0]; if(!file) return;
+      if(file.size>12*1024*1024){ setSt('الصورة كبيرة جداً (الحد 12MB)، اختر صورة أصغر',1); return }
+      setSt('جاري تجهيز الصورة…'); var r=new FileReader();
       r.onerror=function(){ setSt('تعذّر قراءة الصورة',1) };
-      r.onload=function(){ var im=new Image(); im.onerror=function(){ setSt('صيغة الصورة غير مدعومة، جرّب JPG أو PNG',1) };
+      r.onload=function(){
+        var im=new Image();
+        im.onerror=function(){ setSt('صيغة الصورة غير مدعومة، جرّب JPG أو PNG',1) };
         im.onload=function(){
-          var m=Math.min(im.width,im.height), S=Math.min(480,m), c=document.createElement('canvas'); c.width=S; c.height=S;
-          c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);
-          var d=c.toDataURL('image/webp',.82); if(d.indexOf('image/webp')<0) d=c.toDataURL('image/jpeg',.85);
-          var id=Math.random().toString(36).slice(2,10); FSC[id]=d; try{localStorage.setItem('fsi_'+id,d)}catch(e){}
-          PEND.push(Promise.race([db.collection('imgs').doc(id).set({d:d}), new Promise(function(_,no){ setTimeout(no,6000) })]).catch(function(){ INL[id]=d }));
-          cb('@FS:'+id) };
-        im.src=r.result };
-      r.readAsDataURL(file) };
-    f.click() }
+          try{
+            var m=Math.min(im.width,im.height), S=Math.min(360,m), c=document.createElement('canvas');
+            c.width=S; c.height=S;
+            var cx=c.getContext('2d');
+            if(!cx){setSt('تعذّر معالجة الصورة بهذا المتصفح',1);return}
+            cx.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);
+            var d=c.toDataURL('image/webp',.72);
+            if(d.indexOf('image/webp')<0) d=c.toDataURL('image/jpeg',.78);
+            if(!d||d.length<100){setSt('فشل تجهيز الصورة، جرّب صورة أخرى',1);return}
+            cb(d);
+          }catch(e){setSt('حدث خطأ أثناء تجهيز الصورة',1)}
+        };
+        im.src=r.result;
+      };
+      r.readAsDataURL(file);
+    };
+    f.click();
+  }
   function move(a,i,d){ var j=i+d; if(j<0||j>=a.length) return; var t=a[i]; a[i]=a[j]; a[j]=t }
   function act(s){
     var p=s.split(':'), a=p[0];
