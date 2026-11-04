@@ -413,6 +413,17 @@ html[data-theme=light] form,html[data-theme=light] .sbox{background:linear-gradi
 html[data-theme=light] #modal.full,html[data-theme=light] #modal.full .mbox{background:#f3f0e8!important}
 html[data-theme=light] .nav button.on span{color:#8a5207}
 html[data-theme=light] .notice{color:#3a3a4a}
+
+/* محرر التصميم المرئي للأدمن فقط */
+#visualEditorBar{position:fixed;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top,0px));z-index:10001;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;background:#151522;border:1px solid #f3bf4e;border-radius:14px;box-shadow:0 8px 28px #000b;color:#fff;font:700 14px 'Tajawal',sans-serif}
+#visualEditorBar button{border:0;border-radius:9px;padding:9px 12px;background:#f3bf4e;color:#241600;font:800 14px 'Tajawal',sans-serif}
+#visualEditorBar .vexit{background:#292938;color:#fff}
+#visualEditorHint{position:fixed;left:50%;bottom:calc(95px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:10001;background:#151522;color:#fff;border:1px solid #f3bf4e;border-radius:12px;padding:9px 14px;font:700 13px 'Tajawal',sans-serif;white-space:nowrap;pointer-events:none}
+.vselected{outline:2px dashed #f3bf4e!important;outline-offset:3px!important;cursor:move!important;touch-action:none!important}
+#visualResizeHandle{position:fixed;z-index:10002;width:28px;height:28px;border-radius:50%;background:#f3bf4e;border:3px solid #fff;box-shadow:0 2px 12px #000;touch-action:none}
+html.visual-edit,html.visual-edit body{overscroll-behavior:contain}
+html.visual-edit *{-webkit-user-select:none!important;user-select:none!important}
+
 </style>
 </head>
 <body>
@@ -1247,7 +1258,9 @@ function adminM(v){
       +admTile('find','🔎','بحث برقم الطلب')+admTile('bal','💰','تعديل رصيد زبون')
       +admTile('ban','⏳','حظر مؤقت')+admTile('pban','🚫','حظر دائم')+admTile('unb','✅','فك الحظر')+admTile('usr','👥','المستخدمون')
       +admTile('bans','📋','قائمة المحظورين')+admTile('acc','🕵️','فحص حساب')+admTile('wrn','⚠️','تنبيه لمستخدم')+admTile('del','🗑️','حذف حساب')+admTile('edt','🛠️','الباقات والأسعار')+admTile('sed','🧩','محرّر الأقسام والموقع')+admTile('set','⚙️','إعدادات الموقع')
-      +admTile('ntf','🔔','تجربة الإشعار')+admTile('prc','💲','تثبيت الأسعار')+'</div>';
+      +admTile('ntf','🔔','تجربة الإشعار')+admTile('prc','💲','تثبيت الأسعار')+admTile('visual','📐','التحكم الكامل بتصميم الموقع')+'</div>';
+  } else if(v==='visual'){
+    h=bk+'<h3>التحكم الكامل بتصميم الموقع</h3><p style="color:var(--muted)">ادخل وضع التعديل، ثم اضغط مطولاً على أي عنصر لمدة ثانيتين لتحريكه أو تغيير حجمه. التغييرات تُحفظ على هذا الجهاز.</p><button class="mb" id="startVisualEdit" type="button">📐 دخول وضع التعديل</button><p class="note">يمكنك سحب العنصر لتغيير مكانه، وسحب المقبض لتكبيره أو تصغيره.</p>';
   } else if(v==='ords'){
     h=bk+'<h3>الطلبات المعلّقة ('+pend.length+')</h3>'+(pend.length?pend.map(admOrdCard).join(''):'<p class="msg" style="color:#9c9cb0">لا يوجد طلبات معلّقة.</p>');
   } else if(v==='tops'){
@@ -1280,6 +1293,8 @@ function adminM(v){
     [].forEach.call($('mbody').querySelectorAll('button[data-k]'),function(t){t.onclick=function(){
       if(t.dataset.k==='ntf'){pingAdmin('🔔 تجربة','الإشعارات شغالة ✅','white_check_mark');bell();t.innerHTML='<span class="ae">🔔</span>تم الإرسال ✓';return}
       adminM(t.dataset.k)}});
+  } else if(v==='visual'){
+    $('startVisualEdit').onclick=function(){if(!isAdmin())return;closeM();startVisualEditor()};
   } else if(v==='ords'||v==='tops'){
     admBindAct();
   } else if(v==='find'){
@@ -2181,5 +2196,84 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
   if(later)later.onclick=hideAsk;
 })();
 </script>
+
+<script>
+/* ===== محرر الموقع المرئي: متاح لحساب الأدمن فقط ===== */
+(function(){
+  var active=false, holdTimer=null, down=null, selected=null, handle=null, action=null, origin=null, suppressClick=false;
+  var STORE='al3m_visual_layout_v1';
+  function admin(){try{return typeof isAdmin==='function'&&isAdmin()}catch(e){return false}}
+  function read(){try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch(e){return {}}}
+  function write(data){try{localStorage.setItem(STORE,JSON.stringify(data));return true}catch(e){if(typeof toast==='function')toast('تعذر حفظ التعديلات');return false}}
+  function pathFor(el){
+    var a=[];while(el&&el!==document.body){var p=el.parentElement;if(!p)return null;a.unshift([].indexOf.call(p.children,el));el=p}return a.join('.');
+  }
+  function byPath(path){var el=document.body;path.split('.').forEach(function(n){el=el&&el.children[Number(n)]});return el}
+  function applySaved(){
+    if(!admin())return;var data=read();
+    Object.keys(data).forEach(function(path){var el=byPath(path),v=data[path];if(el&&v){el.style.position='relative';el.style.left=v.left||'0px';el.style.top=v.top||'0px';if(v.width)el.style.width=v.width;if(v.height)el.style.height=v.height;el.style.maxWidth='none'}});
+  }
+  function saveElement(el){
+    var data=read(),path=pathFor(el);if(path===null)return;
+    data[path]={left:el.style.left||'0px',top:el.style.top||'0px',width:el.style.width||'',height:el.style.height||''};write(data);
+  }
+  function ensureUi(){
+    if(document.getElementById('visualEditorBar'))return;
+    var bar=document.createElement('div');bar.id='visualEditorBar';
+    bar.innerHTML='<span>📐 وضع تعديل الموقع</span><span><button type="button" id="vSave">حفظ</button> <button type="button" class="vexit" id="vExit">إنهاء</button></span>';
+    var hint=document.createElement('div');hint.id='visualEditorHint';hint.textContent='اضغط مطولاً على العنصر ثانيتين لتحديده وتحريكه';
+    document.body.appendChild(bar);document.body.appendChild(hint);
+    bar.querySelector('#vSave').onclick=function(){if(!admin())return;if(selected)saveElement(selected);toast('تم حفظ التعديلات ✓')};
+    bar.querySelector('#vExit').onclick=stop;
+  }
+  function eligible(el){
+    if(!el||el===document.body||el===document.documentElement)return false;
+    if(el.closest('#visualEditorBar,#visualEditorHint,#visualResizeHandle,#modal,#drw,.nav,.top,#boot,#ldr'))return false;
+    var r=el.getBoundingClientRect();return r.width>18&&r.height>14&&getComputedStyle(el).position!=='fixed';
+  }
+  function clearSelection(){if(selected)selected.classList.remove('vselected');selected=null;if(handle){handle.remove();handle=null}}
+  function select(el){
+    clearSelection();selected=el;selected.classList.add('vselected');selected.style.touchAction='none';
+    handle=document.createElement('div');handle.id='visualResizeHandle';document.body.appendChild(handle);placeHandle();
+  }
+  function placeHandle(){if(!selected||!handle)return;var r=selected.getBoundingClientRect();handle.style.left=(r.left+r.width-14)+'px';handle.style.top=(r.top+r.height-14)+'px'}
+  function startVisualEditor(){if(!admin()){toast('هذه الخاصية للأدمن فقط');return}active=true;document.documentElement.classList.add('visual-edit');ensureUi();applySaved();toast('وضع التعديل مفعّل')}
+  function stop(){
+    active=false;clearTimeout(holdTimer);holdTimer=null;clearSelection();document.documentElement.classList.remove('visual-edit');
+    ['visualEditorBar','visualEditorHint'].forEach(function(id){var el=document.getElementById(id);if(el)el.remove()});action=null;down=null;
+  }
+  function begin(e){
+    if(!active||!admin()||e.button>0||e.target.closest('#visualEditorBar,#visualResizeHandle'))return;
+    var el=e.target.nodeType===1?e.target:null;if(!eligible(el))return;
+    down={x:e.clientX,y:e.clientY,el:el};
+    holdTimer=setTimeout(function(){
+      if(!active||!down)return;suppressClick=true;select(el);action='drag';
+      origin={x:down.x,y:down.y,left:parseFloat(el.style.left)||0,top:parseFloat(el.style.top)||0};
+      try{navigator.vibrate&&navigator.vibrate(45)}catch(_){}
+      toast('تم تحديد العنصر — اسحبه للمكان المطلوب أو استخدم المقبض لتغيير حجمه');
+    },2000);
+  }
+  function move(e){
+    if(!active)return;
+    if(down&&!action&&(Math.abs(e.clientX-down.x)>12||Math.abs(e.clientY-down.y)>12)){clearTimeout(holdTimer);holdTimer=null;down=null}
+    if(!action||!selected)return;e.preventDefault();
+    if(action==='drag'){selected.style.position='relative';selected.style.left=(origin.left+e.clientX-origin.x)+'px';selected.style.top=(origin.top+e.clientY-origin.y)+'px'}
+    else if(action==='resize'){selected.style.width=Math.max(36,origin.w+e.clientX-origin.x)+'px';selected.style.height=Math.max(24,origin.h+e.clientY-origin.y)+'px'}
+    placeHandle();
+  }
+  function end(){if(holdTimer){clearTimeout(holdTimer);holdTimer=null}if(action&&selected){saveElement(selected);placeHandle()}action=null;down=null}
+  document.addEventListener('pointerdown',begin,true);
+  document.addEventListener('pointermove',move,{capture:true,passive:false});
+  document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);
+  document.addEventListener('pointerdown',function(e){
+    if(!active||!handle||!e.target.closest('#visualResizeHandle'))return;
+    e.preventDefault();e.stopPropagation();action='resize';var r=selected.getBoundingClientRect();origin={x:e.clientX,y:e.clientY,w:r.width,h:r.height};
+  },true);
+  document.addEventListener('click',function(e){if(active&&suppressClick){suppressClick=false;e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();return}if(active&&e.target.closest('#visualResizeHandle')){e.preventDefault();e.stopPropagation()}},true);
+  window.addEventListener('resize',placeHandle);window.addEventListener('scroll',placeHandle,true);
+  document.addEventListener('DOMContentLoaded',applySaved);
+})();
+</script>
+
 </body>
 </html>
