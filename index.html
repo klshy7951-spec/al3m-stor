@@ -882,7 +882,7 @@ drawCats();
 <script>
 // ===== إعدادات Firebase: الصقها من Firebase Console > Project settings =====
 var FB_CONFIG = {apiKey:"AIzaSyBNZyUc7_XMteeSBEvUwZvVdBUAscF90mM", authDomain:"al3m-stor.firebaseapp.com", projectId:"al3m-stor", appId:"1:49571071314:web:4a765b18951c10848fe68b"};
-var TG_BOT_USER = "";   // اسم مستخدم بوت تيليغرام بدون @ (اكتبه هنا بعد إنشاء البوت)
+var TG_BOT_USER = "al3m1stor_bot";   // اسم مستخدم بوت تيليغرام بدون @ (اكتبه هنا بعد إنشاء البوت)
 var ADMIN_EMAIL = "klshy7951@gmail.com";   // إيميل حسابك أنت (الأدمن)
 var lastSt={o:null,t:null}, tiv=null, me=null, bal=0, uname="", mine=[], mineT=[], pend=[], pendT=[], fbOK=!!(window.firebase && FB_CONFIG.apiKey), authReady=false, waitQ=[];
 function whenAuth(fn){ if(!fbOK||authReady) fn(); else waitQ.push(fn) }
