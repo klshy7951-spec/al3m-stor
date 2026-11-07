@@ -882,6 +882,7 @@ drawCats();
 <script>
 // ===== إعدادات Firebase: الصقها من Firebase Console > Project settings =====
 var FB_CONFIG = {apiKey:"AIzaSyBNZyUc7_XMteeSBEvUwZvVdBUAscF90mM", authDomain:"al3m-stor.firebaseapp.com", projectId:"al3m-stor", appId:"1:49571071314:web:4a765b18951c10848fe68b"};
+var TG_BOT_USER = "";   // اسم مستخدم بوت تيليغرام بدون @ (اكتبه هنا بعد إنشاء البوت)
 var ADMIN_EMAIL = "klshy7951@gmail.com";   // إيميل حسابك أنت (الأدمن)
 var lastSt={o:null,t:null}, tiv=null, me=null, bal=0, uname="", mine=[], mineT=[], pend=[], pendT=[], fbOK=!!(window.firebase && FB_CONFIG.apiKey), authReady=false, waitQ=[];
 function whenAuth(fn){ if(!fbOK||authReady) fn(); else waitQ.push(fn) }
@@ -892,7 +893,7 @@ function isAdmin(){return !!(me && me.email && me.email.toLowerCase()===ADMIN_EM
 function showM(h){delete $('mbody').dataset.v;$('mbody').innerHTML=h;$('modal').hidden=false}
 function closeM(){$('modal').hidden=true;$('modal').classList.remove('full');$('modal').classList.remove('lock');warnBusy=false;setNav('nHome');if(tiv){clearInterval(tiv);tiv=null}}
 function setErr(t){$('err').textContent=t||""}
-function chip(){ bellBadge(); $('balBtn').textContent = me ? moneyShort(bal) : ((fbOK&&!authReady) ? "..." : "دخول"); var a=isAdmin(); document.body.classList.toggle('adm',a); $('nAdm').hidden=!a; var an=a?pend.length+pendT.length:0; $('nAdmN').textContent=an; $('nAdmN').hidden=!an; }
+function chip(){ bellBadge(); $('balBtn').textContent = me ? moneyShort(bal) : ((fbOK&&!authReady) ? "..." : "دخول"); var a=isAdmin(); document.body.classList.toggle('adm',a); $('nAdm').hidden=!a; var an=a?pend.length+pendT.length:0; $('nAdmN').textContent=an; $('nAdmN').hidden=!an; if(a) schedulePubBotCat(); }
 chip();
 var ST={pending:"قيد التنفيذ ⌛",accepted:"تم التنفيذ ✅",rejected:"مرفوض ❌ (أُرجع الرصيد)"}, STT={pending:"قيد المراجعة ⌛",approved:"تمت الإضافة ✅",rejected:"مرفوض ❌"};
 
@@ -958,7 +959,7 @@ if (fbOK){
   setTimeout(function(){var first=1;db.collection('config').doc('prices').onSnapshot(function(s){
     if(s.exists){ PR=s.data();
       if(pick){ var pk=pick, np=(PR.p&&PR.p[pk.k]!=null)?PR.p[pk.k]:null; if(isOff(pk.g+'')||isOff(pk.g+'_'+pk.c)||isOff(pk.k)||(np!==null&&np!==pk.p)) pick=null } }
-    availRefresh(); if(first){first=0;bootStep('prices')}
+    _prOK=1; schedulePubBotCat(); availRefresh(); if(first){first=0;bootStep('prices')}
   },function(){ if(first){first=0;bootStep('prices')} })},0);
   var auth=firebase.auth(), db=firebase.firestore(), FV=firebase.firestore.FieldValue, offs=[]; db.settings({experimentalAutoDetectLongPolling:true,merge:true});
   auth.onAuthStateChanged(function(u){
@@ -1117,11 +1118,51 @@ function bindAvatar(){
   };
   if($('avdel')) $('avdel').onclick=function(){db.collection('users').doc(me.uid).update({avatar:FV.delete()}).then(function(){avatar='';acctM()}).catch(function(){avMsg('فشل الحذف')})};
 }
+// ===== ربط تيليغرام + نشر كتالوج البوت =====
+function tgCode(){ var A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', b=new Uint8Array(10), c=''; crypto.getRandomValues(b); for(var i=0;i<b.length;i++) c+=A[b[i]%A.length]; return c }
+function tgLinkM(){
+  if(!me||!TG_BOT_USER) return;
+  var code=tgCode(); ldr(1);
+  db.collection('tgLinks').doc(code).set({uid:me.uid,exp:Date.now()+600000,at:FV.serverTimestamp()}).then(function(){
+    ldr(0);
+    showM('<h3>🤖 ربط تيليغرام</h3><p style="margin:0 0 8px;color:#cfcfe0;line-height:1.9">اضغط «فتح البوت» ثم ابدأ، أو أرسل للبوت هذا الأمر:</p><p dir="ltr" style="margin:0 0 8px"><b id="tgc" style="font-size:22px;cursor:pointer">/start '+code+'</b></p><p style="color:#9c9cb0;margin:0 0 10px;font-size:14px">الكود صالح 10 دقائق ولمرة واحدة. لا تشاركه مع أي شخص.</p><a class="mb ok" style="display:block;text-decoration:none;text-align:center" target="_blank" rel="noopener" href="https://t.me/'+TG_BOT_USER+'?start='+code+'">فتح البوت</a><button class="mb g" id="tgb" type="button">رجوع</button>');
+    $('tgc').onclick=function(){copyTxt('/start '+code)}; $('tgb').onclick=acctM;
+  }).catch(function(){ ldr(0); toast('تعذّر إنشاء كود الربط، حاول لاحقاً') });
+}
+var botCatT=null, botCatLast='', _prOK=0, _ctOK=0;
+function schedulePubBotCat(){ if(!fbOK) return; clearTimeout(botCatT); botCatT=setTimeout(pubBotCat,6000) }
+function botCatBuild(){
+  var out=[];
+  GAMES.forEach(function(G,gi){
+    if(!G||!G.cats||isOff(String(gi))) return;
+    var cats=[];
+    G.cats.forEach(function(C,ci){
+      if(isOff(gi+'_'+ci)) return;
+      var items=[];
+      catItems(gi,ci).forEach(function(it,ix){
+        if(it[2]) return;
+        var k=gi+'_'+ci+'_'+ix; if(isOff(k)) return;
+        var nm=itName(k,it); if(/ربط/.test(nm)) return;
+        var pr=itPrice(C,k,it); if(!(pr>0)) return;
+        items.push({k:k,n:clean(nm),p:pr});
+      });
+      if(items.length) cats.push({n:clean(C.name),items:items});
+    });
+    if(cats.length) out.push({n:clean(G.name),m:G.idMode||'num',l:G.idLabel||'',cats:cats});
+  });
+  return out;
+}
+function pubBotCat(){
+  if(!fbOK||!me||!isAdmin()||!_prOK||!_ctOK||!GAMES.length) return;
+  var js; try{ js=JSON.stringify(botCatBuild()) }catch(e){ return }
+  if(js===botCatLast) return; botCatLast=js;
+  db.collection('config').doc('botCatalog').set({json:js,at:FV.serverTimestamp()}).catch(function(){ botCatLast='' });
+}
 function acctM(){
   var h=avBlock()+'<h3>'+esc(uname||'حسابي')+'</h3><p style="margin:0 0 8px;color:#9c9cb0">'+esc(me.email)+'<br>الرصيد: <b>'+moneyShort(bal)+'</b>'+(cid?'<br>ID حسابك: <b dir="ltr" id="mycid" style="cursor:pointer">'+esc(cid)+'</b> <small>(اضغط للنسخ)</small>':'')+'</p>';
-  h+='<button class="mb g" id="faq" type="button">❓ الأسئلة والشروط</button><button class="mb g" id="lo" type="button">تسجيل الخروج</button><h3 style="margin-top:14px;font-size:18px">طلباتي</h3>';
+  h+='<button class="mb g" id="faq" type="button">❓ الأسئلة والشروط</button>'+(TG_BOT_USER?'<button class="mb g" id="tgl" type="button">🤖 ربط تيليغرام</button>':'')+'<button class="mb g" id="lo" type="button">تسجيل الخروج</button><h3 style="margin-top:14px;font-size:18px">طلباتي</h3>';
   h+=mine.length?mine.slice(0,15).map(function(o){return '<div class="row"><b>'+(o.no?'#'+esc(o.no)+' · ':'')+esc(o.game)+' — '+esc(o.pkg)+'</b><small>'+money(o.price)+' · '+(ST[o.status]||"")+'</small></div>'}).join(""):'<p class="msg" style="color:#9c9cb0">لا يوجد طلبات.</p>';
-  showM(h); bindAvatar(); $('lo').onclick=function(){auth.signOut();closeM()}; $('faq').onclick=faqM; if($('mycid')) $('mycid').onclick=function(){copyTxt(cid)};
+  showM(h); bindAvatar(); $('lo').onclick=function(){auth.signOut();closeM()}; $('faq').onclick=faqM; if($('tgl')) $('tgl').onclick=tgLinkM; if($('mycid')) $('mycid').onclick=function(){copyTxt(cid)};
 }
 var avatar='', admV='hub';
 function admRefresh(){ if(admV==='hub'||admV==='ords'||admV==='tops'){ var bx=$('mbody').parentNode, sc=bx.scrollTop; adminM(admV); bx.scrollTop=sc } }
@@ -1841,10 +1882,11 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
     for(var i in (ct.gx||{})){ var x=ct.gx[i]; if(x&&bad(x.em)){ if(G0[i]) x.em=tok(G0[i].em); else delete x.em; n++ } }
     return n }
   db.collection('config').doc('catalog').onSnapshot(function(s){
+    _ctOK=1; schedulePubBotCat();
     if(!s.exists){ var was=CT; CT=null; if(was) apply(seed()); return }
     var c; try{c=JSON.parse(s.data().json)}catch(e){return}
     try{ heal(c) }catch(e){}
-    CT=c; apply(c);
+    CT=c; apply(c); schedulePubBotCat();
     var need=needFS(c).filter(function(i){return !FSC[i]}); if(need.length) loadFS(need).then(function(){ if(CT===c) apply(c) });
   },function(){});
 
