@@ -882,7 +882,7 @@ drawCats();
 <script>
 // ===== إعدادات Firebase: الصقها من Firebase Console > Project settings =====
 var FB_CONFIG = {apiKey:"AIzaSyBNZyUc7_XMteeSBEvUwZvVdBUAscF90mM", authDomain:"al3m-stor.firebaseapp.com", projectId:"al3m-stor", appId:"1:49571071314:web:4a765b18951c10848fe68b"};
-var TG_BOT_USER = "al3m1stor_bot";   // اسم مستخدم بوت تيليغرام بدون @ (اكتبه هنا بعد إنشاء البوت)
+var TG_BOT_USER = "";   // اسم مستخدم بوت تيليغرام بدون @ (اكتبه هنا بعد إنشاء البوت)
 var ADMIN_EMAIL = "klshy7951@gmail.com";   // إيميل حسابك أنت (الأدمن)
 var lastSt={o:null,t:null}, tiv=null, me=null, bal=0, uname="", mine=[], mineT=[], pend=[], pendT=[], fbOK=!!(window.firebase && FB_CONFIG.apiKey), authReady=false, waitQ=[];
 function whenAuth(fn){ if(!fbOK||authReady) fn(); else waitQ.push(fn) }
@@ -2485,7 +2485,9 @@ window.fdt=function(ms){
 // ===== صفحة ربط البوت =====
 window.tgLinkM=function(){
   if(!window.me){ loginM('سجّل دخولك أولاً'); return }
-  var t=window.tgd||{}, linked=!!t.id, bot=(typeof TG_BOT_USER!=='undefined'&&TG_BOT_USER)||'';
+  if(!window.TGI&&!window._tgiTry){ window._tgiTry=1; ldr(1); db.collection('config').doc('botInfo').get().then(function(s){ ldr(0); if(s.exists) window.TGI=s.data(); window.tgLinkM() }).catch(function(){ ldr(0); window.tgLinkM() }); return }
+  var t=window.tgd||{}, linked=!!t.id, bot=(window.TGI&&window.TGI.user)||(typeof TG_BOT_USER!=='undefined'&&TG_BOT_USER)||'';
+  if(!bot){ showM('<div class="tgp"><h2>بوت تلغرام</h2><p class="tgs">البوت غير جاهز حالياً، حاول لاحقاً.</p></div>'); $('modal').classList.add('full'); return }
   var h='<div class="tgp"><h2>بوت تلغرام</h2><p class="tgs">يتيح لك البوت متابعة الطلبات، تنفيذ عمليات الشراء، ومراجعة الرصيد مع إشعارات فورية عبر تيليغرام.</p>'
    +'<div class="tgbox"><div class="tgt"><span class="tgi">🤖</span><b>الدخول الى البوت</b></div><a class="tgb" target="_blank" rel="noopener" href="https://t.me/'+bot+'">دخول</a></div>';
   if(linked){
@@ -2493,19 +2495,26 @@ window.tgLinkM=function(){
      +'<p class="tgn">حسابك مرتبط ببوت تلغرام ويمكنك فك الربط في أي وقت.</p><button class="unl" id="tgun" type="button">فك الربط 🔗</button>';
   }else{
     h+='<div class="chips"><span class="chip off">غير مرتبط</span></div>'
-     +'<div class="tgf"><input id="tgid" type="text" inputmode="numeric" placeholder="معرّف تيليغرام الرقمي"><button id="tgsv" type="button">حفظ</button></div><p class="tgm" id="tgm"></p>';
+     +'<div class="tgf"><input id="tgid" type="text" dir="ltr" maxlength="6" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:3px;text-align:center" placeholder="رمز حسابك على البوت"><button id="tgsv" type="button">ربط</button></div><p class="tgm" id="tgm"></p>'
+     +'<a id="tgget" target="_blank" rel="noopener" href="https://t.me/'+bot+'?start=code" style="display:inline-block;margin:4px 0 14px;color:#4da3ff;font-weight:800;text-decoration:underline">الحصول على الرمز</a>';
   }
-  h+='<hr><h4>تعليمات الربط</h4><ol><li>اضغط على زر الدخول لفتح البوت.</li><li>ابدأ المحادثة عبر Start أو أرسل الأمر /start.</li><li>انسخ معرّف تيليغرام الرقمي (يظهر عند الضغط على «رصيدي» باسم ID حسابك).</li><li>أدخل المعرّف في الحقل أعلاه واضغط حفظ ليتم ربط حسابك مباشرة.</li></ol>'
+  h+='<hr><h4>تعليمات الربط</h4><ol><li>اضغط «الحصول على الرمز» لفتح البوت، وبيرسلك رمزك الخاص (6 رموز) تلقائياً.</li><li>انسخ الرمز وارجع هون، واكتبه بالحقل أعلاه.</li><li>اضغط «ربط» وبيوصلك تأكيد على البوت مباشرة.</li></ol>'
    +'<h4>مزايا البوت</h4><ul><li>إنشاء الطلبات وشراء الخدمات المتاحة مباشرة.</li><li>استقبال إشعارات فورية للطلبات وحركات شحن الرصيد.</li><li>مراجعة الرصيد وبعض بيانات الحساب من داخل تلغرام.</li></ul>'
    +'<a class="open" target="_blank" rel="noopener" href="https://t.me/'+bot+'">فتح البوت ↗</a></div>';
   showM(h); $('modal').classList.add('full');
   var sv=$('tgsv'), un=$('tgun');
   function msg(x){var m=$('tgm'); if(m) m.textContent=x||''}
   if(sv) sv.onclick=function(){
-    var v=dg($('tgid').value).replace(/\s/g,'');
-    if(!/^\d{5,15}$/.test(v)){msg('اكتب المعرّف الرقمي فقط (أرقام)');return}
-    ldr(1); var at=Date.now();
-    db.collection('users').doc(me.uid).update({tgId:v,tgAt:at}).then(function(){ldr(0);window.tgd={id:v,at:at};toast('تم ربط حسابك ✅');window.tgLinkM()}).catch(function(){ldr(0);msg('تعذّر الحفظ، حاول لاحقاً')});
+    var v=dg($('tgid').value).replace(/\s/g,'').toUpperCase();
+    if(!/^[A-HJ-NP-Z2-9]{6}$/.test(v)){msg('اكتب الرمز كما وصلك من البوت (6 رموز)');return}
+    ldr(1);
+    db.collection('tgLinks').doc(v+'AL3M').set({uid:me.uid,exp:Date.now()+600000,at:FV.serverTimestamp()}).then(function(){
+      var pu=window.TGI&&window.TGI.url; if(pu){ try{ fetch(pu+'/p?c='+v,{mode:'no-cors'}).catch(function(){}) }catch(e){} }
+      var n=0, iv=setInterval(function(){ n++;
+        if(window.tgd&&window.tgd.id){ clearInterval(iv); ldr(0); toast('تم ربط حسابك ✅'); window.tgLinkM() }
+        else if(n>=14){ clearInterval(iv); ldr(0); msg('تم إرسال الطلب. افتح البوت واضغط Start وبيكتمل الربط خلال ثوانٍ.') }
+      },1500);
+    }).catch(function(){ldr(0);msg('تعذّر إرسال الطلب، تأكد من الرمز وحاول مرة ثانية')});
   };
   if(un) un.onclick=function(){
     ldr(1);
