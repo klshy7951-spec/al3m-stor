@@ -1152,8 +1152,30 @@ function botCatBuild(){
   });
   return out;
 }
+var botTreeLast='';
+function bsPage(P){
+  var o={n:P.name||'',t:P.text||'',b:(P.btns||[]).map(function(B){ return {t:B.t||'',w:B.wa||'',u:B.url==='FF_GROUP'?FF_GROUP:(B.url||''),a:B.acct?1:0} })};
+  if(P.kind) o.k=P.kind; if(P.gx!=null) o.g=P.gx;
+  if(P.pages) o.p=P.pages.map(bsPage);
+  return o;
+}
+function botTreeBuild(){
+  var games=GAMES.map(function(G){ if(!G||!G.cats) return null;
+    return {n:G.name||'',en:G.en||'',m:G.idMode||'num',l:G.idLabel||'',d:G.desc||'',
+      c:G.cats.map(function(C){ return {n:C.name||'',i:(C.items||[]).map(function(it){ return [String(it[0]),price(C,it),it[2]?1:0] })} })} });
+  var cats=CATS.map(function(K){ return {n:K.name||'',s:K.social?1:0,g:(K.games||[]),p:(K.pages||[]).map(bsPage),d:K.direct?bsPage(K.direct):null} });
+  return {v:2,games:games,cats:cats,social:SOCIAL.map(function(x){ return {n:x.name,e:x.en} }),
+    top:TOPUP.map(function(m){ return {name:m.name,cur:m.cur,to:m.to} }),tmin:TMIN,tminu:TMIN_USD,rate:USD_RATE,wa1:WHATSAPP,wa2:WHATSAPP2,ff:FF_GROUP};
+}
+function pubBotTree(){
+  var js; try{ js=JSON.stringify(botTreeBuild()) }catch(e){ return }
+  if(js===botTreeLast) return; botTreeLast=js;
+  db.collection('config').doc('botTree').set({json:js,at:FV.serverTimestamp()}).catch(function(){ botTreeLast='' });
+}
+setInterval(function(){ if(fbOK) schedulePubBotCat() },20000);
 function pubBotCat(){
   if(!fbOK||!me||!isAdmin()||!_prOK||!_ctOK||!GAMES.length) return;
+  pubBotTree();
   var js; try{ js=JSON.stringify(botCatBuild()) }catch(e){ return }
   if(js===botCatLast) return; botCatLast=js;
   db.collection('config').doc('botCatalog').set({json:js,at:FV.serverTimestamp()}).catch(function(){ botCatLast='' });
