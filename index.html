@@ -2715,7 +2715,7 @@ var cache={}, cur=null, ctx=null;
 function aud(k){ if(!window.SND||!SND[k]) return null; if(!cache[k]){ var a=new Audio(SND[k]); a.preload='auto'; a.onerror=function(){}; cache[k]=a } return cache[k] }
 function voice(k,force){
   if(muted&&!force) return; if(!F[k]) return;
-  try{ if(cur){cur.pause();cur.currentTime=0} var a=aud(k); if(!a) return; a.currentTime=0; cur=a; var p=a.play(); if(p&&p.catch) p.catch(function(){}) }catch(e){}
+  try{ if(cur){cur.pause();cur.currentTime=0} var a=aud(k); if(!a) return; a.volume=0.5; a.currentTime=0; cur=a; var p=a.play(); if(p&&p.catch) p.catch(function(){}) }catch(e){}
 }
 function ac(){ try{ if(!ctx){ var C=window.AudioContext||window.webkitAudioContext; if(C) ctx=new C() } if(ctx&&ctx.state==='suspended') ctx.resume() }catch(e){} return ctx }
 function tone(f1,f2,d,g,type,delay){
@@ -2724,9 +2724,9 @@ function tone(f1,f2,d,g,type,delay){
     v.gain.setValueAtTime(g,t); v.gain.exponentialRampToValueAtTime(0.0001,t+d); o.connect(v); v.connect(c.destination); o.start(t); o.stop(t+d+0.02) }catch(e){}
 }
 var lastTick=0;
-function tick(){ var n=Date.now(); if(n-lastTick<60) return; lastTick=n; tone(1100,650,0.05,0.12,'triangle') }
-function ok(){ tone(660,0,0.12,0.14,'sine'); tone(990,0,0.2,0.14,'sine',0.1) }
-function err(){ tone(220,150,0.25,0.16,'square') }
+function tick(){ var n=Date.now(); if(n-lastTick<60) return; lastTick=n; tone(1100,650,0.06,0.3,'triangle') }
+function ok(){ tone(660,0,0.14,0.32,'sine'); tone(990,0,0.22,0.32,'sine',0.1) }
+function err(){ tone(220,150,0.28,0.28,'square') }
 function norm(t){ return String(t||'').replace(/[\u064B-\u065F\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s+/g,' ').trim() }
 function pick(t){
   t=norm(t);
