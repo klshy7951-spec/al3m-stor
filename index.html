@@ -2621,20 +2621,21 @@ var $=function(i){return document.getElementById(i)};
 function whenFb(fn,n){n=n||0; if(typeof db!=='undefined'&&typeof fbOK!=='undefined'&&fbOK){fn();return} if(n<40) setTimeout(function(){whenFb(fn,n+1)},1000)}
 function stars(n){return '★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n)}
 var home=$('home');
-// ---- شريط الإعلان ----
+// ---- شريط الإعلانات (عدة إعلانات) ----
 function fmtLeft(ms){ var q=Math.max(0,Math.floor(ms/1000)), d=Math.floor(q/86400), h=Math.floor(q%86400/3600), m=Math.floor(q%3600/60), x=q%60, p=function(n){return (n<10?'0':'')+n}; return (d?d+' يوم ':'')+p(h)+':'+p(m)+':'+p(x) }
+function annItems(d){ if(!d) return []; var l=d.list; if(!l&&d.on&&d.text) l=[{id:'old'+(d.at&&d.at.seconds||0),text:d.text,c:d.c,exp:d.exp||0}]; return Array.isArray(l)?l:[] }
 var bar=document.createElement('div'); bar.id='annBar'; bar.hidden=true; home.insertBefore(bar,home.firstChild);
-var annT=null;
-whenFb(function(){ db.collection('config').doc('announce').onSnapshot(function(s){
-  clearInterval(annT);
-  var d=s.exists?s.data():null; if(!d||!d.on||!d.text||(d.exp&&Date.now()>=d.exp)){bar.hidden=true;return}
-  var key='ann_'+d.text+'_'+(d.at&&d.at.seconds||0); try{ if(sessionStorage.getItem(key)){bar.hidden=true;return} }catch(e){}
-  var c=d.c||'gold'; bar.className='ann '+c;
-  bar.innerHTML='<span class="ai">'+({gold:'📢',red:'⚠️',green:'🎉'}[c]||'📢')+'</span><b>'+esc(d.text)+(d.exp?'<small class="anl" id="anl"></small>':'')+'</b><button type="button" aria-label="إغلاق">✕</button>'; bar.hidden=false;
-  bar.querySelector('button').onclick=function(){bar.hidden=true;clearInterval(annT); try{sessionStorage.setItem(key,1)}catch(e){}};
-  function tk(){ var l=d.exp-Date.now(); if(l<=0){clearInterval(annT);bar.hidden=true;return} var e=$('anl'); if(e) e.textContent='⏳ ينتهي بعد '+fmtLeft(l) }
-  if(d.exp){ tk(); annT=setInterval(tk,1000) }
-},function(){}) });
+var annL=[], annSig='x';
+function dis(id){ try{ return sessionStorage.getItem('ann_'+id) }catch(e){ return null } }
+function annDraw(){
+  var now=Date.now(), arr=annL.filter(function(x){return x&&x.text&&(!x.exp||x.exp>now)&&!dis(x.id)});
+  var sig=arr.map(function(x){return x.id}).join(','); if(sig===annSig) return; annSig=sig;
+  bar.innerHTML=arr.map(function(x){var c=x.c||'gold'; return '<div class="ann '+c+'" data-i="'+esc(x.id)+'"><span class="ai">'+({gold:'📢',red:'⚠️',green:'🎉'}[c]||'📢')+'</span><b>'+esc(x.text)+'</b><button type="button" aria-label="إغلاق">✕</button></div>'}).join('');
+  bar.hidden=!arr.length;
+  [].forEach.call(bar.querySelectorAll('.ann'),function(el){ el.querySelector('button').onclick=function(){ try{sessionStorage.setItem('ann_'+el.dataset.i,1)}catch(e){} annSig='x'; annDraw() } });
+}
+setInterval(annDraw,1000);
+whenFb(function(){ db.collection('config').doc('announce').onSnapshot(function(s){ annL=annItems(s.exists?s.data():null); annSig='x'; annDraw() },function(){}) });
 // ---- آراء الزبائن ----
 var rv=document.createElement('section'); rv.id='rvSec'; rv.hidden=true; home.appendChild(rv);
 function loadRv(){ whenFb(function(){ db.collection('reviews').orderBy('at','desc').limit(10).get().then(function(q){
@@ -2690,29 +2691,31 @@ window.ordersM=function(){ _om(); deco(); loadMy(function(){ deco() }) };
 // ---- لوحة الأدمن: إعلان + آراء ----
 function bkb(){ var b=$('abk'); if(b) b.onclick=function(){window.adminM('hub')} }
 var BK='<button class="bk" id="abk" type="button">← رجوع</button>';
+function saveAnn(list){ return db.collection('config').doc('announce').set({list:list,at:FV.serverTimestamp()}) }
 function annM(){ admV='ann'; db.collection('config').doc('announce').get().then(function(s){
-  var d=s.exists?s.data():{}, col=d.c||'gold', now=Date.now(), st;
-  if(d.on&&d.text){ st=(d.exp&&d.exp<=now)?'⌛ الإعلان الحالي منتهي.':'📢 الإعلان الحالي ظاهر للزبائن — '+(d.exp?'ينتهي بعد '+fmtLeft(d.exp-now)+' ('+fdt(d.exp)+')':'بدون وقت انتهاء') }
-  else st='ما في إعلان ظاهر حالياً.';
-  showM(BK+'<h3>📢 شريط الإعلان</h3><p class="anst">'+st+'</p><textarea id="ant" maxlength="140" placeholder="نص الإعلان (مثال: عرض اليوم على شحن جواهر فري فاير)">'+esc(d.text||'')+'</textarea><div class="ancs" id="ancs"><button data-c="gold" type="button">📢 عادي</button><button data-c="green" type="button">🎉 عرض</button><button data-c="red" type="button">⚠️ تنبيه</button></div>'
-   +'<p class="lbl2" style="margin:8px 0 2px;font-weight:800">⏳ مدة الإعلان (0 = بدون انتهاء)</p><div class="ang"><div><label>أيام</label><input id="and" type="number" inputmode="numeric" min="0" value="0"></div><div><label>ساعات</label><input id="anh" type="number" inputmode="numeric" min="0" value="0"></div><div><label>دقائق</label><input id="anm2" type="number" inputmode="numeric" min="0" value="0"></div><div><label>ثواني</label><input id="ans" type="number" inputmode="numeric" min="0" value="0"></div></div>'
-   +'<label class="anon"><input type="checkbox" id="anon"'+(d.on&&d.text?' checked':'')+'> إظهار الشريط للزبائن</label><p class="msg" id="anm"></p><button class="mb" id="ansv" type="button">حفظ ونشر</button><button class="mb r" id="ando" type="button">🗑 حذف الإعلان من عند الكل</button>');
-  bkb();
+  var L=annItems(s.exists?s.data():null), now=Date.now(), col='gold';
+  var h=BK+'<h3>📢 الإعلانات</h3>';
+  h+=L.length?L.map(function(x){ var st=(x.exp&&x.exp<=now)?'⌛ منتهي':'🟢 ظاهر — '+(x.exp?'ينتهي بعد '+fmtLeft(x.exp-now):'بدون انتهاء');
+    return '<div class="row"><b>'+({gold:'📢',red:'⚠️',green:'🎉'}[x.c||'gold']||'📢')+' '+esc(x.text)+'</b><small>'+st+'</small><button class="mb r" data-x="'+esc(x.id)+'" type="button" style="margin-top:6px">🗑 حذف هذا الإعلان</button></div>' }).join('')+(L.length>1?'<button class="mb g" id="anall" type="button">🗑 حذف كل الإعلانات</button>':''):'<p class="anst">ما في إعلانات حالياً.</p>';
+  h+='<h3 style="margin-top:16px;font-size:18px">➕ إعلان جديد</h3><textarea id="ant" maxlength="140" placeholder="نص الإعلان (مثال: عرض اليوم على شحن جواهر فري فاير)"></textarea><div class="ancs" id="ancs"><button data-c="gold" type="button">📢 عادي</button><button data-c="green" type="button">🎉 عرض</button><button data-c="red" type="button">⚠️ تنبيه</button></div>'
+   +'<p style="margin:8px 0 2px;font-weight:800">⏳ مدة الإعلان (0 = بدون انتهاء)</p><div class="ang"><div><label>أيام</label><input id="and" type="number" inputmode="numeric" min="0" value="0"></div><div><label>ساعات</label><input id="anh" type="number" inputmode="numeric" min="0" value="0"></div><div><label>دقائق</label><input id="anm2" type="number" inputmode="numeric" min="0" value="0"></div><div><label>ثواني</label><input id="ans" type="number" inputmode="numeric" min="0" value="0"></div></div>'
+   +'<p class="msg" id="anm"></p><button class="mb" id="ansv" type="button">إضافة ونشر</button>';
+  showM(h); bkb();
   function mark(){[].forEach.call($('ancs').children,function(b){b.classList.toggle('on',b.dataset.c===col)})} mark();
   [].forEach.call($('ancs').children,function(b){b.onclick=function(){col=b.dataset.c;mark()}});
   function num(i){ var v=String($(i).value||'').replace(/[\u0660-\u0669]/g,function(c){return c.charCodeAt(0)-1632}).replace(/[\u06F0-\u06F9]/g,function(c){return c.charCodeAt(0)-1776}); return Math.max(0,Math.floor(Number(v)||0)) }
+  function live(){ var t=Date.now(); return L.filter(function(x){return !x.exp||x.exp>t}) }
+  function done(msg){ ldr(0); toast(msg); annM() }
+  function fail(){ ldr(0); var m=$('anm'); if(m){m.style.color='';m.textContent='فشل الحفظ (تحقق من قواعد Firebase)'} }
   $('ansv').onclick=function(){ var m=$('anm'); m.style.color='';
-    var txt=$('ant').value.trim(), on=$('anon').checked;
-    if(on&&!txt){m.textContent='اكتب نص الإعلان';return}
-    var tot=num('and')*86400+num('anh')*3600+num('anm2')*60+num('ans');
-    if(tot>31536000){m.textContent='المدة كبيرة، الحد الأقصى سنة';return}
-    var exp=tot>0?Date.now()+tot*1000:0; ldr(1);
-    db.collection('config').doc('announce').set({on:on,text:txt,c:col,exp:exp,at:FV.serverTimestamp()})
-     .then(function(){ldr(0);toast('تم نشر الإعلان ✓');annM()}).catch(function(){ldr(0);m.textContent='فشل الحفظ (تحقق من قواعد Firebase)'}) };
-  $('ando').onclick=function(){ var m=$('anm'); if(!confirm('حذف الإعلان من عند كل الزبائن الآن؟')) return; ldr(1);
-    db.collection('config').doc('announce').set({on:false,text:'',c:'gold',exp:0,at:FV.serverTimestamp()})
-     .then(function(){ldr(0);toast('تم حذف الإعلان من عند الكل ✓');annM()}).catch(function(){ldr(0);m.style.color='';m.textContent='فشل الحذف (تحقق من قواعد Firebase)'}) };
- }).catch(function(){ toast('تعذّر فتح الإعلان') }) }
+    var txt=$('ant').value.trim(); if(!txt){m.textContent='اكتب نص الإعلان';return}
+    var tot=num('and')*86400+num('anh')*3600+num('anm2')*60+num('ans'); if(tot>31536000){m.textContent='المدة كبيرة، الحد الأقصى سنة';return}
+    var l=live(); if(l.length>=10){m.textContent='الحد الأقصى 10 إعلانات، احذف واحد أولاً';return}
+    l.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),text:txt,c:col,exp:tot>0?Date.now()+tot*1000:0,t:Date.now()});
+    ldr(1); saveAnn(l).then(function(){done('تم نشر الإعلان ✓')}).catch(fail) };
+  [].forEach.call($('mbody').querySelectorAll('[data-x]'),function(bn){ bn.onclick=function(){ if(!confirm('حذف هذا الإعلان من عند الكل؟')) return; var id=bn.dataset.x; ldr(1); saveAnn(live().filter(function(x){return x.id!==id})).then(function(){done('تم حذف الإعلان ✓')}).catch(fail) } });
+  if($('anall')) $('anall').onclick=function(){ if(!confirm('حذف كل الإعلانات من عند الكل؟')) return; ldr(1); saveAnn([]).then(function(){done('تم حذف كل الإعلانات ✓')}).catch(fail) };
+ }).catch(function(){ toast('تعذّر فتح الإعلانات') }) }
 function rvwM(){ admV='rvw'; db.collection('reviews').orderBy('at','desc').limit(30).get().then(function(q){
   showM(BK+'<h3>⭐ آراء الزبائن</h3>'+(q.empty?'<p class="msg" style="color:#9c9cb0">لا يوجد آراء بعد.</p>':q.docs.map(function(d){var x=d.data();return '<div class="row"><b>'+stars(x.stars|0)+' · '+esc(x.name||'')+'</b><small>'+esc(x.game||'')+' — '+esc(x.pkg||'')+'</small>'+(x.text?'<small style="color:var(--ink)">'+esc(x.text)+'</small>':'')+'<button class="mb r" data-d="'+d.id+'" type="button" style="margin-top:6px">🗑 حذف</button></div>'}).join('')));
   bkb();
@@ -2723,7 +2726,7 @@ window.adminM=function(v){
   if(v==='ann') return annM(); if(v==='rvw') return rvwM();
   _am(v);
   if(!v||v==='hub'){ var t=document.querySelector('#mbody .atiles'); if(t){
-    t.insertAdjacentHTML('beforeend',admTile('ann','📢','شريط الإعلان')+admTile('rvw','⭐','آراء الزبائن'));
+    t.insertAdjacentHTML('beforeend',admTile('ann','📢','الإعلانات')+admTile('rvw','⭐','آراء الزبائن'));
     ['ann','rvw'].forEach(function(k){ var b=t.querySelector('[data-k="'+k+'"]'); if(b) b.onclick=function(e){e.stopPropagation();window.adminM(k)} }) } }
 };
 })();
