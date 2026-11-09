@@ -470,6 +470,10 @@ html[data-theme=light] .notice{color:#3a3a4a}
 .rvm textarea,#ant{width:100%;min-height:80px;border-radius:12px;border:1px solid #2a2a3a;background:#0a0a10;color:var(--ink);padding:10px;font:600 15px 'Tajawal',sans-serif;box-sizing:border-box;margin-bottom:8px}
 .ancs{display:flex;gap:6px;margin:4px 0 10px}.ancs button{flex:1;border:0;border-radius:10px;padding:9px 4px;background:#242435;color:var(--ink);font:800 14px 'Tajawal',sans-serif}.ancs button.on{outline:2px solid var(--gold)}
 .anon{display:flex;align-items:center;gap:8px;margin:6px 0;color:var(--ink);font-weight:700}
+
+/* ===== الصوت ===== */
+#sndBtn{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;align-items:center;gap:8px;padding:9px 14px;border:0;border-radius:999px;background:rgba(12,12,19,.92);color:var(--ink);font:800 13px 'Tajawal',sans-serif;box-shadow:0 0 0 1px rgba(243,191,78,.5),0 8px 18px rgba(0,0,0,.5);cursor:pointer;-webkit-tap-highlight-color:transparent}
+#sndBtn .si{font-size:18px;line-height:1}#sndBtn.off{box-shadow:0 0 0 1px rgba(255,106,106,.6),0 8px 18px rgba(0,0,0,.5)}
 </style>
 </head>
 <body>
@@ -2699,6 +2703,81 @@ window.adminM=function(v){
   if(!v||v==='hub'){ var t=document.querySelector('#mbody .atiles'); if(t){
     t.insertAdjacentHTML('beforeend',admTile('ann','📢','شريط الإعلان')+admTile('rvw','⭐','آراء الزبائن'));
     ['ann','rvw'].forEach(function(k){ var b=t.querySelector('[data-k="'+k+'"]'); if(b) b.onclick=function(e){e.stopPropagation();window.adminM(k)} }) } }
+};
+})();
+</script>
+<script>
+(function(){
+var F={welcome:'اهلا_بك_في_متجر_العم_ستور_.mp3',games:'قسم_الالعاب.mp3',social:'قسم_السوشال_ميديا_.mp3',ffacc:'قسم_حسابات_فري_فاير_.mp3',withdraw:'قسم_سحب_الرصيد_.mp3',webs:'قسم_صناعة_مواقع_.mp3',freefire:'فري_فاير_.mp3',pubg:'ببجي_موبايل_.mp3',blood:'بلود_سترايك_.mp3',delta:'ديلتا_فورس_.mp3',sham:'خدمات_شام_كاش_.mp3',syr:'خدمات_سريتيل_كاش.mp3',pro:'موقع_احترافي_.mp3',simple:'موقع_بسيط_.mp3',pending:'طلبك_قيد_التنفيذ_.mp3',accepted:'طلبك_مقبول_.mp3',rejected:'طلبك_مرفوض.mp3'};
+var muted=false; try{ muted=localStorage.getItem('al3m_mute')==='1' }catch(e){}
+var cache={}, cur=null, ctx=null;
+function aud(k){ if(!cache[k]){ var a=new Audio(encodeURI(F[k])); a.preload='auto'; a.onerror=function(){}; cache[k]=a } return cache[k] }
+function voice(k,force){
+  if(muted&&!force) return; if(!F[k]) return;
+  try{ if(cur){cur.pause();cur.currentTime=0} var a=aud(k); a.currentTime=0; cur=a; var p=a.play(); if(p&&p.catch) p.catch(function(){}) }catch(e){}
+}
+function ac(){ try{ if(!ctx){ var C=window.AudioContext||window.webkitAudioContext; if(C) ctx=new C() } if(ctx&&ctx.state==='suspended') ctx.resume() }catch(e){} return ctx }
+function tone(f1,f2,d,g,type,delay){
+  if(muted) return; var c=ac(); if(!c) return;
+  try{ var t=c.currentTime+(delay||0), o=c.createOscillator(), v=c.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f1,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d);
+    v.gain.setValueAtTime(g,t); v.gain.exponentialRampToValueAtTime(0.0001,t+d); o.connect(v); v.connect(c.destination); o.start(t); o.stop(t+d+0.02) }catch(e){}
+}
+var lastTick=0;
+function tick(){ var n=Date.now(); if(n-lastTick<60) return; lastTick=n; tone(1100,650,0.05,0.12,'triangle') }
+function ok(){ tone(660,0,0.12,0.14,'sine'); tone(990,0,0.2,0.14,'sine',0.1) }
+function err(){ tone(220,150,0.25,0.16,'square') }
+function norm(t){ return String(t||'').replace(/[\u064B-\u065F\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s+/g,' ').trim() }
+function pick(t){
+  t=norm(t);
+  if(t.indexOf('حسابات فري')>-1) return 'ffacc';
+  if(t==='الالعاب') return 'games';
+  if(t.indexOf('السوشال')>-1) return 'social';
+  if(t.indexOf('سحب الرصيد')>-1) return 'withdraw';
+  if(t.indexOf('صناعه مواقع')>-1) return 'webs';
+  if(t.indexOf('فري فاير')>-1) return 'freefire';
+  if(t.indexOf('ببجي')>-1) return 'pubg';
+  if(t.indexOf('بلود')>-1) return 'blood';
+  if(t.indexOf('ديلتا')>-1) return 'delta';
+  if(t.indexOf('شام كاش')>-1) return 'sham';
+  if(t.indexOf('سريتيل')>-1||t.indexOf('سيريتل')>-1) return 'syr';
+  if(t.indexOf('موقع احترافي')>-1) return 'pro';
+  if(t.indexOf('موقع بسيط')>-1) return 'simple';
+  return '';
+}
+// ---- زر الكتم ----
+var bt=document.createElement('button'); bt.id='sndBtn'; bt.type='button';
+function paint(){ bt.className=muted?'off':''; bt.innerHTML='<span class="si">'+(muted?'🔇':'🔊')+'</span><span>'+(muted?'تشغيل صوت الموقع':'كتم صوت الموقع')+'</span>'; bt.setAttribute('aria-pressed',muted?'true':'false') }
+paint(); document.body.appendChild(bt);
+bt.onclick=function(e){ e.stopPropagation(); muted=!muted; try{localStorage.setItem('al3m_mute',muted?'1':'0')}catch(x){} if(muted&&cur){try{cur.pause()}catch(x){}} paint(); if(!muted) ok() };
+// ---- نقرات + أصوات الأقسام ----
+document.addEventListener('click',function(e){
+  var t=e.target; if(!t||!t.closest||t.closest('#sndBtn')) return;
+  var card=t.closest('button.card');
+  if(card&&!card.classList.contains('na')){ var b=card.querySelector('b'), k=pick(b?b.textContent:''); if(k){ ac(); voice(k); return } }
+  if(t.closest('button,a,.tile,[data-a],.ord,.row,.dnv,nav')) tick();
+},true);
+// ---- صوت الترحيب (يشتغل حتى لو الموقع مكتوم) ----
+var wdone=false; try{ wdone=sessionStorage.getItem('al3m_wel')==='1' }catch(e){}
+function welcome(){
+  if(wdone) return; var a=aud('welcome'), p;
+  try{ cur=a; a.currentTime=0; p=a.play() }catch(e){}
+  if(p&&p.then) p.then(function(){ wdone=true; try{sessionStorage.setItem('al3m_wel','1')}catch(e){}; off() }).catch(function(){});
+}
+function first(){ welcome() }
+function off(){ ['pointerdown','touchstart','keydown','click'].forEach(function(ev){ document.removeEventListener(ev,first,true) }) }
+if(!wdone){ ['pointerdown','touchstart','keydown','click'].forEach(function(ev){ document.addEventListener(ev,first,true) }); welcome() }
+// ---- تحميل مسبق لباقي الأصوات ----
+window.addEventListener('load',function(){ setTimeout(function(){ Object.keys(F).forEach(function(k){ if(k!=='welcome') aud(k) }) },3000) });
+// ---- أصوات الطلبات والإشعارات ----
+var _sm=window.showM;
+window.showM=function(h){ _sm(h); try{ if(/طلبك قيد التنفيذ/.test(h)) voice('pending') }catch(e){} };
+var _ts=window.toast;
+window.toast=function(t){
+  _ts(t); t=String(t||'');
+  if(/^✅ تم تنفيذ طلبك/.test(t)) voice('accepted');
+  else if(/^❌ تم رفض طلبك/.test(t)) voice('rejected');
+  else if(/تعذّر|تعذر|فشل|غير متوفر|⚠️|❌/.test(t)) err();
+  else if(/✓|✅|شكراً/.test(t)) ok();
 };
 })();
 </script>
