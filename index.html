@@ -2706,15 +2706,16 @@ window.adminM=function(v){
 };
 })();
 </script>
+<script src="snd.js" async></script>
 <script>
 (function(){
 var F={welcome:'اهلا_بك_في_متجر_العم_ستور_.mp3',games:'قسم_الالعاب.mp3',social:'قسم_السوشال_ميديا_.mp3',ffacc:'قسم_حسابات_فري_فاير_.mp3',withdraw:'قسم_سحب_الرصيد_.mp3',webs:'قسم_صناعة_مواقع_.mp3',freefire:'فري_فاير_.mp3',pubg:'ببجي_موبايل_.mp3',blood:'بلود_سترايك_.mp3',delta:'ديلتا_فورس_.mp3',sham:'خدمات_شام_كاش_.mp3',syr:'خدمات_سريتيل_كاش.mp3',pro:'موقع_احترافي_.mp3',simple:'موقع_بسيط_.mp3',pending:'طلبك_قيد_التنفيذ_.mp3',accepted:'طلبك_مقبول_.mp3',rejected:'طلبك_مرفوض.mp3'};
 var muted=false; try{ muted=localStorage.getItem('al3m_mute')==='1' }catch(e){}
 var cache={}, cur=null, ctx=null;
-function aud(k){ if(!cache[k]){ var a=new Audio(encodeURI(F[k])); a.preload='auto'; a.onerror=function(){}; cache[k]=a } return cache[k] }
+function aud(k){ if(!window.SND||!SND[k]) return null; if(!cache[k]){ var a=new Audio(SND[k]); a.preload='auto'; a.onerror=function(){}; cache[k]=a } return cache[k] }
 function voice(k,force){
   if(muted&&!force) return; if(!F[k]) return;
-  try{ if(cur){cur.pause();cur.currentTime=0} var a=aud(k); a.currentTime=0; cur=a; var p=a.play(); if(p&&p.catch) p.catch(function(){}) }catch(e){}
+  try{ if(cur){cur.pause();cur.currentTime=0} var a=aud(k); if(!a) return; a.currentTime=0; cur=a; var p=a.play(); if(p&&p.catch) p.catch(function(){}) }catch(e){}
 }
 function ac(){ try{ if(!ctx){ var C=window.AudioContext||window.webkitAudioContext; if(C) ctx=new C() } if(ctx&&ctx.state==='suspended') ctx.resume() }catch(e){} return ctx }
 function tone(f1,f2,d,g,type,delay){
@@ -2736,8 +2737,9 @@ function pick(t){
   if(t.indexOf('صناعه مواقع')>-1) return 'webs';
   if(t.indexOf('فري فاير')>-1) return 'freefire';
   if(t.indexOf('ببجي')>-1) return 'pubg';
-  if(t.indexOf('بلود')>-1) return 'blood';
-  if(t.indexOf('ديلتا')>-1) return 'delta';
+  if(t.indexOf('بلود')>-1||/blood\s*strike/i.test(t)) return 'blood';
+  if(t.indexOf('ديلتا')>-1||/delta\s*force/i.test(t)) return 'delta';
+  if(/pubg/i.test(t)) return 'pubg';
   if(t.indexOf('شام كاش')>-1) return 'sham';
   if(t.indexOf('سريتيل')>-1||t.indexOf('سيريتل')>-1) return 'syr';
   if(t.indexOf('موقع احترافي')>-1) return 'pro';
@@ -2758,8 +2760,10 @@ document.addEventListener('click',function(e){
 },true);
 // ---- صوت الترحيب (يشتغل حتى لو الموقع مكتوم) ----
 var wdone=false; try{ wdone=sessionStorage.getItem('al3m_wel')==='1' }catch(e){}
+var wtry=0;
 function welcome(){
   if(wdone) return; var a=aud('welcome'), p;
+  if(!a){ if(wtry++<60) setTimeout(welcome,300); return }
   try{ cur=a; a.currentTime=0; p=a.play() }catch(e){}
   if(p&&p.then) p.then(function(){ wdone=true; try{sessionStorage.setItem('al3m_wel','1')}catch(e){}; off() }).catch(function(){});
 }
