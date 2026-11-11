@@ -392,6 +392,43 @@ html[data-theme=light] .dwa a{box-shadow:0 0 0 1px #cfc9b8}
 
 /* الشريط السفلي والعلوي فوق النوافذ */
 .nav{z-index:25}
+/* زر بوت تيليجرام */
+#nBot{min-width:64px;white-space:nowrap}
+#nBot svg{fill:#4da3ff}
+#nBot.on svg{fill:#3a2203}
+/* صفحة إضافة رصيد + استرداد كود */
+#modal.full:has(#mbody[data-v="top"]) .mbox{background:#f4f5f8!important;padding:60px 16px 24px!important}
+#modal:has(#mbody[data-v="top"]) .mx{color:#333}
+.tpg{color:#111;direction:rtl;text-align:right}
+.tpg h2{margin:0 0 14px;font:800 26px/1.4 'Tajawal',sans-serif;color:#15151d;background:none;-webkit-text-fill-color:currentColor}
+.tpcode{display:flex;align-items:center;gap:14px;width:100%;border:0;cursor:pointer;background:#000;color:#fff;border-radius:26px;padding:20px 18px;margin:0 0 26px;text-align:right;font-family:inherit;box-shadow:0 14px 26px -12px rgba(0,0,0,.55)}
+.tpcode:active{transform:translateY(2px)}
+.tpci{flex:none;width:64px;height:64px;border-radius:50%;background:#2a2a30;display:grid;place-items:center}
+.tpci svg{width:30px;height:30px;fill:#fff}
+.tpct b{display:block;font:800 20px/1.3 'Tajawal',sans-serif;color:#fff}
+.tpct small{display:block;margin-top:4px;color:#d0d0d8;font:500 15px 'Tajawal',sans-serif}
+.tpgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 12px}
+.tpc{background:none;border:0;padding:0;font-family:inherit;cursor:pointer;text-align:center;color:#111;-webkit-tap-highlight-color:transparent}
+.tpa{aspect-ratio:1;border-radius:16px;position:relative;overflow:hidden;display:grid;place-items:center;background:linear-gradient(160deg,var(--a),var(--b));box-shadow:0 10px 18px -10px rgba(0,0,0,.5)}
+.tpt{width:56%;height:66%;border-radius:14px;background:#fff;display:grid;place-items:center;font:400 11px/1.25 'Russo One','Tajawal',sans-serif;text-align:center;padding:4px;box-shadow:0 10px 14px -6px rgba(0,0,0,.4)}
+.tpa em{position:absolute;right:0;bottom:7px;font:800 11px 'Tajawal',sans-serif;font-style:normal;padding:2px 9px;color:#fff;background:rgba(0,0,0,.5)}
+.tpc b{display:block;margin-top:8px;font:700 13px/1.3 'Tajawal',sans-serif;color:#111}
+.tpc:active .tpa{filter:brightness(1.1)}
+.rcard{background:#fff;border-radius:26px;padding:26px 16px 20px;text-align:center;border:1px solid #eceef2;box-shadow:0 10px 30px -14px rgba(0,0,0,.25)}
+.rlogo{display:grid;place-items:center;margin:0 0 26px}
+.rlogo svg{width:84px;height:84px;filter:drop-shadow(0 5px 8px rgba(0,0,0,.25))}
+.rin{position:relative;margin:0 0 12px;text-align:right}
+.rin label{position:absolute;top:-11px;right:18px;margin:0;padding:2px 12px;background:#fff;border-radius:99px;font:700 13px 'Tajawal',sans-serif;color:#444;z-index:1;display:block}
+.rin .ri{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:26px;height:26px;fill:#666;pointer-events:none}
+.tpg .rin input[type=text]{display:block;width:100%;margin:0;background:#eceef2;color:#111;border:0;border-radius:99px;padding:20px 20px 20px 56px;font:600 18px 'Tajawal',sans-serif;letter-spacing:2px;text-align:right;box-shadow:none}
+.tpg .rin input[type=text]:focus{outline:none;box-shadow:0 0 0 2px #000}
+.tpg .msg{color:#d11a2a;text-align:center;font-weight:700;min-height:22px;margin:0 0 8px}
+.rgo{width:100%;display:flex;gap:10px;justify-content:center;align-items:center;background:#000;color:#fff;border:0;border-radius:99px;padding:20px;font:800 19px 'Tajawal',sans-serif;cursor:pointer;box-shadow:0 14px 24px -12px rgba(0,0,0,.6)}
+.rgo svg{width:24px;height:24px;fill:#fff}
+.rgo:disabled{opacity:.6}
+.rback{margin:16px auto 0;display:block;background:#fff;border:1px solid #dfe2e8;color:#111;border-radius:99px;padding:12px 26px;font:700 15px 'Tajawal',sans-serif;cursor:pointer}
+
+
 .top{z-index:26}
 #drw{z-index:45}
 #modal.full{top:var(--topH,0px)}
@@ -577,6 +614,7 @@ setTimeout(bootHide,4000);
     </div>
     <div class="notice">الأسعار بالليرة السورية، ويُخصم الطلب من رصيدك. اضغط + لإضافة رصيد.</div>
     <button class="mb" id="instBtn" type="button" style="max-width:420px;margin:0 auto 14px">📲 ثبّت الموقع على شاشتك</button>
+    <div class="search hsearch"><input id="hq" type="search" placeholder="بحث" aria-label="بحث في الأقسام" autocomplete="off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></div>
     <div class="cards" id="catcards"></div>
     <p style="text-align:center;margin:16px 0 0"><button class="bk" id="faqLink" type="button">❓ الأسئلة الشائعة والشروط</button></p>
   </section>
@@ -638,6 +676,7 @@ setTimeout(bootHide,4000);
 <div id="drw" aria-hidden="true"><div class="dov" id="dov"></div><aside class="dpn" id="dpn"></aside></div>
 <nav class="nav" aria-label="التنقل">
 <button id="nOrd" type="button"><i><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg></i><span>طلباتي</span></button>
+<button id="nBot" type="button"><i><svg viewBox="0 0 24 24"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg></i><span>بوت تيليجرام</span></button>
 <button id="nHome" class="on" type="button"><i><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></i><span>الرئيسية</span></button>
 <button id="nTop" type="button"><i><svg viewBox="0 0 24 24"><path d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9zm-9-2h10V8H12v8zm4-2.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg></i><span>شحن الرصيد</span></button>
 <button id="nAcc" type="button"><i><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg></i><span>حسابي</span></button>
@@ -1496,13 +1535,69 @@ function decideT(id,reject,note){
     if(!reject)t.update(db.collection('users').doc(o.uid),{balance:FV.increment(cr)});
     t.update(r,{status:reject?'rejected':'approved',note:note||''})})}).then(function(){return r.get().then(function(sn){ if(sn.exists&&!sn.data().doneAt&&sn.data().status!=='pending') return r.update({doneAt:FV.serverTimestamp()}) })}).catch(function(){alert('فشلت العملية')}).then(function(){ldr(0)});
 }
+var TPSTY=[{a:'#8fb4ee',b:'#2c78a6',ink:'#1b6fb5',en:'SHAM CASH'},{a:'#ef7b86',b:'#a3111f',ink:'#d11a2a',en:'SYRIATEL CASH'}];
+var TPCARD='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>';
 function topM(){
   if(banBlock())return;
   if(tiv){clearInterval(tiv);tiv=null}
-  showM('<h3>شحن الرصيد</h3><p style="margin:0 0 10px;color:#9c9cb0">اختر طريقة الدفع</p><div class="tiles">'+TOPUP.map(function(m,i){return '<button class="tile" data-m="'+i+'" type="button">'+esc(m.name)+'<small>'+(m.cur.length>1?'ل.س · دولار $':'ل.س')+'</small></button>'}).join("")+'<button class="tile" data-o="1" type="button">💬 طريقة أخرى<small>عبر واتساب</small></button></div>');
+  $('modal').classList.add('full');
+  var cards=TOPUP.map(function(m,i){
+    var st=TPSTY[i]||{a:'#b8b8d8',b:'#4a4a78',ink:'#333',en:esc(m.name)};
+    return '<button class="tpc" data-m="'+i+'" type="button"><span class="tpa" style="--a:'+st.a+';--b:'+st.b+'"><span class="tpt" style="color:'+st.ink+'">'+st.en+'</span><em>'+esc(m.name)+'</em></span><b>'+esc(m.name)+'</b></button>';
+  }).join('');
+  cards+='<button class="tpc" data-o="1" type="button"><span class="tpa" style="--a:#5fe08f;--b:#0e8c43"><span class="tpt" style="color:#0e8c43;font-size:26px">💬</span><em>واتساب</em></span><b>طريقة أخرى</b></button>';
+  showM('<div class="tpg"><h2>إضافة رصيد</h2><button class="tpcode" id="tpcode" type="button"><span class="tpci">'+TPCARD+'</span><span class="tpct"><b>كود شحن AL3M STOR</b><small>إدخال كود الشحن</small></span></button><div class="tpgrid">'+cards+'</div></div>');
+  $('mbody').dataset.v='top';
+  $('tpcode').onclick=redeemM;
   [].forEach.call($('mbody').querySelectorAll('button[data-m]'),function(b){b.onclick=function(){curM(+b.dataset.m)}});
   var ob=$('mbody').querySelector('button[data-o]'); if(ob) ob.onclick=otherM;
   setNav('nTop');
+}
+var rFails=0, rLockT=0;
+function redeemCode(code){
+  var cref=db.collection('codes').doc(code), uref=db.collection('users').doc(me.uid);
+  return db.runTransaction(function(t){return t.get(cref).then(function(c){
+    if(!c.exists) throw new Error('NOCODE');
+    var d=c.data()||{}; if(d.used) throw new Error('USED');
+    var amt=Number(d.amount)||0; if(!(amt>0)) throw new Error('NOCODE');
+    t.update(cref,{used:true,usedBy:me.uid,usedEmail:me.email||'',usedName:uname||'',usedAt:FV.serverTimestamp()});
+    t.update(uref,{balance:FV.increment(amt),lastCode:code});
+    return amt;
+  })});
+}
+function redeemM(){
+  if(banBlock())return;
+  $('modal').classList.add('full');
+  var mk=document.querySelector('.brand .mark'), lg=mk?mk.outerHTML:'<b style="font:400 26px \'Russo One\',sans-serif;color:#b7791a">AL3M STOR</b>';
+  showM('<div class="tpg"><h2>استرداد كود الشحن</h2><div class="rcard"><div class="rlogo">'+lg+'</div>'
+    +'<div class="rin"><label for="rcode">كود البطاقة</label><input id="rcode" type="text" dir="ltr" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ادخل الكود">'+TPCARD.replace('<svg','<svg class="ri"')+'</div>'
+    +'<p class="msg" id="rmsg"></p><button class="rgo" id="rgo" type="button">'+TPCARD+'<span>شحن</span></button>'
+    +'<button class="rback" id="rback" type="button">العودة إلى إضافة الرصيد</button></div></div>');
+  $('mbody').dataset.v='top';
+  setNav('nTop');
+  var inp=$('rcode'), msg=$('rmsg');
+  inp.oninput=function(){ var v=inp.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase(); if(v!==inp.value) inp.value=v };
+  inp.onkeydown=function(e){ if(e.key==='Enter') $('rgo').click() };
+  $('rback').onclick=topM;
+  $('rgo').onclick=function(){
+    var code=inp.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+    if(!me){ loginM('سجّل دخولك أولاً'); return }
+    if(Date.now()<rLockT){ msg.textContent='محاولات كثيرة، انتظر دقيقة وجرّب مرة ثانية'; return }
+    if(code.length<4||code.length>10){ msg.textContent='الكود من 4 إلى 10 أحرف أو أرقام'; return }
+    var btn=this; btn.disabled=true; msg.textContent=''; ldr(1);
+    redeemCode(code).then(function(amt){
+      ldr(0); rFails=0;
+      showM('<div class="tpg"><h2>استرداد كود الشحن</h2><div class="rcard"><div style="font-size:56px;line-height:1">✅</div><h2 style="margin:12px 0 4px;text-align:center">تم الشحن بنجاح</h2><p style="margin:0 0 16px;color:#444;font-weight:700">أُضيف '+money(amt)+' إلى رصيدك</p><button class="rgo" id="rdone" type="button"><span>تم</span></button></div></div>');
+      $('mbody').dataset.v='top'; $('rdone').onclick=closeM;
+      try{toast('تم شحن رصيدك '+money(amt)+' ✓')}catch(e){}
+    }).catch(function(e){
+      ldr(0); btn.disabled=false;
+      var m=e&&e.message;
+      if(m==='NOCODE'){ rFails++; if(rFails>=5){ rLockT=Date.now()+60000; rFails=0 } msg.textContent='الكود غير صحيح' }
+      else if(m==='USED') msg.textContent='هذا الكود مستخدم مسبقاً';
+      else msg.textContent='تعذّر الشحن، حاول مرة ثانية';
+    });
+  };
 }
 function curM(k){
   var M=TOPUP[k];
@@ -1533,7 +1628,7 @@ function invM(k,v,c){
   };
 }
 $('nAdm').onclick=function(){ if(!isAdmin()) return; $('modal').classList.add('full'); setNav('nAdm'); adminM('hub') };
-function setNav(id){['nOrd','nHome','nTop','nAcc','nAdm'].forEach(function(i){$(i).classList.toggle('on',i===id)})}
+function setNav(id){['nOrd','nBot','nHome','nTop','nAcc','nAdm'].forEach(function(i){var e=$(i);if(e)e.classList.toggle('on',i===id)})}
 function refO(){if(!$('modal').hidden){ var v=$('mbody').dataset.v; if(v==='orders')ordersM(); else if(v==='od'&&odCur)ordDetail(odCur.id,odCur.k) }}
 function bdg(st,map){var c=(st==='accepted'||st==='approved')?'ok':st==='rejected'?'no':'wt';return '<span class="badge '+c+'">'+(map[st]||"")+'</span>'}
 function ordersM(){
@@ -1550,6 +1645,7 @@ function ordersM(){
 }
 $('nHome').onclick=function(){closeM();['list','game','social','info'].forEach(function(i){$(i).hidden=true});$('home').hidden=false;window.scrollTo(0,0)};
 $('nAcc').onclick=function(){$('modal').classList.add('full');setNav('nAcc');if(needFb())return;whenAuth(function(){me?acctM():loginM()})};
+$('nBot').onclick=function(){setNav('nBot');if(needFb())return;whenAuth(function(){me?window.tgLinkM():loginM('سجّل دخولك لربط البوت')})};
 $('nOrd').onclick=function(){$('modal').classList.add('full');setNav('nOrd');if(needFb())return;whenAuth(function(){me?ordersM():loginM('سجّل دخولك لعرض طلباتك')})};
 $('nTop').onclick=function(){$('modal').classList.add('full');setNav('nTop');if(needFb())return;whenAuth(function(){me?topM():loginM('سجّل دخولك أولاً')})};
 
@@ -2827,6 +2923,52 @@ window.adminM=function(v){
     t.insertAdjacentHTML('beforeend',admTile('sld','🖼','صور الواجهة'));
     var b=t.querySelector('[data-k="sld"]'); if(b) b.onclick=function(e){e.stopPropagation();window.adminM('sld')} } }
 };
+// ---- صنع أكواد الشحن (للأدمن فقط) ----
+function codesM(){
+  if(!isAdmin()) return;
+  admV='cod';
+  showM(BK+'<h3>🎟 صنع أكواد الشحن</h3><p class="anst">اكتب الكود (أحرف إنجليزية وأرقام فقط، من 4 إلى 10) وقيمته. الكود يُستخدم مرة وحدة وبيتحوّل لرصيد الزبون.</p>'
+    +'<input id="cdc" type="text" dir="ltr" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="الكود (4-10 أحرف أو أرقام)">'
+    +'<input id="cda" type="text" inputmode="decimal" placeholder="قيمة الكود (ل.س)">'
+    +'<p class="msg" id="cdm"></p><button class="mb" id="cdgo" type="button">✅ صنع الكود</button><button class="mb g" id="cdrnd" type="button">🎲 كود عشوائي</button>'
+    +'<h3 style="margin:18px 0 8px;font-size:18px">آخر الأكواد</h3><div id="cdl"><p class="msg" style="color:#9c9cb0">جاري التحميل...</p></div>');
+  bkb();
+  var ci=$('cdc'), msg=$('cdm');
+  ci.oninput=function(){ var v=ci.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase(); if(v!==ci.value) ci.value=v };
+  $('cdrnd').onclick=function(){ var A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r='', u=new Uint8Array(8); crypto.getRandomValues(u); for(var i=0;i<8;i++) r+=A[u[i]%A.length]; ci.value=r };
+  $('cdgo').onclick=function(){
+    var c=ci.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase(), a=parseFloat($('cda').value);
+    if(c.length<4||c.length>10){ msg.textContent='الكود لازم يكون من 4 إلى 10 أحرف أو أرقام إنجليزية'; return }
+    if(!(a>0)){ msg.textContent='اكتب قيمة صحيحة للكود'; return }
+    var ref=db.collection('codes').doc(c); ldr(1);
+    db.runTransaction(function(t){return t.get(ref).then(function(sn){
+      if(sn.exists) throw new Error('EXISTS');
+      t.set(ref,{code:c,amount:a,used:false,createdAt:FV.serverTimestamp(),by:(me&&me.email)||''});
+    })}).then(function(){ ldr(0); toast('تم صنع الكود '+c+' ✓'); codesM() })
+      .catch(function(e){ ldr(0); msg.textContent=(e&&e.message==='EXISTS')?'هذا الكود موجود مسبقاً':'فشل الحفظ (تحقق من قواعد Firebase)' });
+  };
+  db.collection('codes').orderBy('createdAt','desc').limit(30).get().then(function(q){
+    var box=$('cdl'); if(!box||admV!=='cod') return;
+    if(q.empty){ box.innerHTML='<p class="msg" style="color:#9c9cb0">ما في أكواد بعد.</p>'; return }
+    box.innerHTML=q.docs.map(function(d){
+      var x=d.data(), st=x.used?('مستخدم'+(x.usedName?' · '+esc(x.usedName):'')):'متاح';
+      return '<div class="row"><b dir="ltr" style="display:block;text-align:right;letter-spacing:1px">'+esc(d.id)+'</b><small>'+money(Number(x.amount)||0)+' · '+st+'</small>'+(x.used?'':'<div class="bt"><button class="mb r" data-d="'+esc(d.id)+'" type="button">🗑 حذف</button></div>')+'</div>';
+    }).join('');
+    [].forEach.call(box.querySelectorAll('[data-d]'),function(bn){ bn.onclick=function(){
+      if(!confirm('حذف الكود '+bn.dataset.d+'؟')) return; ldr(1);
+      db.collection('codes').doc(bn.dataset.d).delete().then(function(){ ldr(0); codesM() }).catch(function(){ ldr(0); toast('فشل الحذف (تحقق من قواعد Firebase)') });
+    }});
+  }).catch(function(){ var box=$('cdl'); if(box) box.innerHTML='<p class="msg">تعذّر تحميل الأكواد (تحقق من قواعد Firebase)</p>' });
+}
+var _am3=window.adminM;
+window.adminM=function(v){
+  if(v==='cod') return codesM();
+  _am3(v);
+  if(!v||v==='hub'){ var t=document.querySelector('#mbody .atiles'); if(t){
+    var tp=t.querySelector('[data-k="tops"]'), h=admTile('cod','🎟','صنع أكواد شحن');
+    if(tp) tp.insertAdjacentHTML('afterend',h); else t.insertAdjacentHTML('afterbegin',h);
+    var cb=t.querySelector('[data-k="cod"]'); if(cb) cb.onclick=function(e){e.stopPropagation();window.adminM('cod')} } }
+};
 })();
 </script>
 <script src="snd.js" async></script>
@@ -2908,5 +3050,109 @@ window.toast=function(t){
 };
 })();
 </script>
+
+<script>
+(function(){
+  var q=document.getElementById('hq'), box=document.getElementById('catcards'); if(!q||!box) return;
+  function f(){ var v=q.value.trim().toLowerCase();
+    [].forEach.call(box.querySelectorAll('.card'),function(c){ var t=(c.textContent||'').toLowerCase(); c.style.display=(!v||t.indexOf(v)>-1)?'':'none' }) }
+  q.addEventListener('input',f);
+  try{ new MutationObserver(f).observe(box,{childList:true}) }catch(e){}
+})();
+</script>
+<style id="fcx">
+/* ===== تصميم على طريقة FAST CARD ===== */
+:root{--bg:#101012;--panel:#1b1b1f;--panel2:#232328;--line:#2c2c32;--pill:#1d1d21;--ink:#f4f4f6;--muted:#9a9aa6;--acc:#e10d2b}
+html[data-theme=light]{--bg:#f6f7f8;--panel:#ffffff;--panel2:#eceef1;--line:#e3e5e9;--pill:#eceef1;--ink:#17171c;--muted:#6a6a76}
+html,html:not([data-theme=light]){background:var(--bg)}
+body::before,html[data-theme=light] body::before{background:var(--bg)!important}
+body::after{display:none!important}
+
+/* الهيدر: أسود مثل المرجع */
+.top,html[data-theme=light] .top{background:#000;border-bottom:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.bar{padding:10px 14px}
+.menub{color:#fff}
+.bal,html[data-theme=light] .bal{background:none;color:#fff;box-shadow:none;padding:4px 2px;font:700 15px 'Tajawal',sans-serif}
+.plus{box-shadow:none;width:26px;height:26px;font-size:20px}
+.bellb{border:0;background:none;width:40px;height:40px}
+.bellb svg{fill:#fff}
+.bellb .bdg{box-shadow:none;top:2px;right:2px}
+.brand .mark,.brand .mark.logoimg{border:0;box-shadow:none;border-radius:10px;width:42px;height:42px;filter:none}
+.top .brand .wm{flex-direction:row;align-items:center;gap:.28em;font-family:'Tajawal',sans-serif;font-weight:800;font-size:19px;letter-spacing:0;line-height:1}
+.top .brand .wm span::before{display:none}
+.top .brand .wm .w1,.top .brand .wm .w2{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;-webkit-text-fill-color:#fff}
+
+/* الصفحة الرئيسية */
+.wrap{padding:0 16px 110px}
+#list,#game,#info,#social{padding-top:16px}
+#home{display:flex;flex-direction:column}
+#home .hero{display:none}
+.notice,html[data-theme=light] .notice{order:0;margin:0 -16px 14px;border-radius:0;padding:9px 16px;background:#ffa400;color:#1a1200;font-weight:700;font-size:13.5px;line-height:1.6;box-shadow:none;display:flex;align-items:center;gap:8px}
+.notice::before{content:"\26A0";font-size:16px;flex:none}
+#annBar{order:1}
+#sld{order:2;border-radius:14px;box-shadow:none;margin:0 0 12px}
+#annTick{order:3;border-radius:10px;box-shadow:none}
+.hsearch{order:4}
+#catcards{order:5;margin-bottom:18px}
+#rvSec{order:6}
+#instBtn{order:7}
+#home>p{order:8}
+
+/* البحث */
+.search,html[data-theme=light] .search{display:flex;background:var(--pill);box-shadow:none;border-radius:99px;padding:2px 20px;margin:2px 0 22px}
+.search input{color:var(--ink);font:500 16px 'Tajawal',sans-serif;padding:13px 0}
+.search:focus-within{box-shadow:0 0 0 2px var(--ink)}
+.search span{order:2}
+.search svg{width:22px;height:22px;fill:var(--muted);flex:none;order:2}
+
+/* كروت الأقسام: 3 أعمدة، الاسم تحت الكرت */
+.cards{grid-template-columns:repeat(3,1fr);gap:20px 12px}
+.art{border-radius:12px;box-shadow:0 6px 14px -8px rgba(0,0,0,.45);transform:none!important;transition:none}
+.art::before,.art::after{display:none}
+.card:hover .art{box-shadow:0 6px 14px -8px rgba(0,0,0,.45)}
+.card b,html[data-theme=light] .card b{display:block;margin:8px 0 0;padding:0;border-radius:0;background:none;box-shadow:none;color:var(--ink);-webkit-text-fill-color:currentColor;font:700 14px/1.35 'Tajawal',sans-serif}
+.art i.x{display:none}
+
+/* العناوين والأزرار */
+.gtitle h2,.banner h2,h3,.goldtxt{background:none;-webkit-text-fill-color:currentColor;color:var(--ink);font-family:'Tajawal',sans-serif;font-weight:800}
+.gtitle h2{font-size:24px}
+h3{font-size:20px}
+.back,html[data-theme=light] .back{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.tab,.pays span,html[data-theme=light] .tab,html[data-theme=light] .pays span{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.tab[aria-pressed="true"],.pays input:checked+span{background:var(--acc);color:#fff;box-shadow:none}
+.grid{gap:12px}
+.item,html[data-theme=light] .item{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line);border-radius:14px;transition:none}
+.item:hover{box-shadow:0 0 0 1px var(--muted)}
+.item:active{transform:none}
+.item[aria-pressed="true"],html[data-theme=light] .item[aria-pressed="true"]{background:var(--panel);box-shadow:0 0 0 2px var(--acc)}
+.item b,html[data-theme=light] .item b{color:var(--ink)}
+.item span,html[data-theme=light] .item span{background:none;-webkit-text-fill-color:var(--acc);color:var(--acc)}
+form,.sbox,html[data-theme=light] form,html[data-theme=light] .sbox{background:var(--panel);box-shadow:0 0 0 1px var(--line);border-radius:18px}
+input[type=text],input[type=password],input[type=email],input[type=search]{background:var(--pill);color:var(--ink);box-shadow:none}
+input[type=text]:focus,input[type=password]:focus,input[type=email]:focus{box-shadow:0 0 0 2px var(--ink)}
+html[data-theme=light] input[type=text],html[data-theme=light] input[type=password],html[data-theme=light] input[type=email]{background:var(--pill);box-shadow:none}
+.sum strong{background:none;-webkit-text-fill-color:var(--acc);color:var(--acc)}
+.wa,.wa:active{background:#25d366;color:#fff;box-shadow:none;border-radius:14px}
+.mb{background:var(--acc);color:#fff}
+.mb.g{background:var(--panel2);color:var(--ink)}
+.mb.r{background:#5a0b17;color:#fff}.mb.ok{background:#14a851;color:#fff}
+.cta{box-shadow:none}
+
+#sndBtn,html[data-theme=light] #sndBtn{color:#fff;background:rgba(0,0,0,.82);box-shadow:0 6px 14px rgba(0,0,0,.35)}
+/* النوافذ والأدمن */
+.mbox,html[data-theme=light] .mbox{background:var(--panel);box-shadow:0 20px 50px -20px rgba(0,0,0,.5)}
+html:root #modal.full,html:root #modal.full .mbox{background:var(--bg)!important}
+.tile,html[data-theme=light] .tile{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.atiles .tile.hot{box-shadow:0 0 0 2px var(--acc)}
+.row{border-top-color:var(--line)}
+
+/* الشريط السفلي */
+.nav,html[data-theme=light] .nav{background:#000;border-top:0}
+.nav button,html[data-theme=light] .nav button{color:#fff}
+.nav button svg,html[data-theme=light] .nav button svg,#nBot svg{fill:#fff;opacity:.8}
+.nav button.on i,.nav button.on i{background:#4d4d4d;box-shadow:none}
+.nav button.on svg,html[data-theme=light] .nav button.on svg,#nBot.on svg{fill:#fff;opacity:1}
+.nav button.on span,html[data-theme=light] .nav button.on span{color:#fff}
+</style>
 </body>
 </html>
