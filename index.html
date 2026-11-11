@@ -534,10 +534,10 @@ html[data-theme=light] .notice{color:#3a3a4a}
 .anst{margin:0 0 10px;padding:9px 12px;border-radius:12px;background:#0a0a10;box-shadow:inset 0 0 0 1px #2a2a3a;font-weight:700;font-size:14px;line-height:1.7}
 
 /* ===== سلايدر الصور + شريط الإعلانات المتحرك ===== */
-#sld{position:relative;border-radius:22px;overflow:hidden;margin:0 0 12px;aspect-ratio:2/1;background:#0a0a10;box-shadow:0 0 0 1px rgba(243,191,78,.45),0 14px 30px rgba(0,0,0,.5);direction:ltr;touch-action:pan-y}
+#sld{position:relative;border-radius:22px;overflow:hidden;margin:0 0 12px;aspect-ratio:3.2/1;background:#0a0a10;box-shadow:0 0 0 1px rgba(243,191,78,.45),0 14px 30px rgba(0,0,0,.5);direction:ltr;touch-action:pan-y}
 #sld[hidden]{display:none}
 #sld .sk{display:flex;height:100%;transition:transform .55s ease;will-change:transform}
-#sld .sk img{flex:0 0 100%;width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none;user-select:none}
+#sld .sk img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;display:block;-webkit-user-drag:none;user-select:none}
 #sld .sd{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:6px}
 #sld .sd i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.45);transition:.3s}
 #sld .sd i.on{background:#f3bf4e;width:20px;border-radius:6px}
@@ -552,7 +552,7 @@ html[data-theme=light] .notice{color:#3a3a4a}
 @keyframes tkmove{from{transform:translateX(-50%)}to{transform:translateX(0)}}
 @media (prefers-reduced-motion:reduce){#annTick .tk{animation-duration:90s}}
 .anps{display:flex;gap:6px;margin:4px 0 10px}.anps button{flex:1;border:0;border-radius:10px;padding:9px 4px;background:#242435;color:var(--ink);font:800 14px 'Tajawal',sans-serif}.anps button.on{outline:2px solid var(--gold)}
-.slr{display:flex;align-items:center;gap:10px}.slr img{width:96px;height:48px;object-fit:cover;border-radius:8px;flex:none}.slr button{margin:0}
+.slr{display:flex;align-items:center;gap:10px}.slr img{width:96px;height:30px;object-fit:contain;border-radius:8px;flex:none}.slr button{margin:0}
 </style>
 </head>
 <body>
@@ -2916,8 +2916,8 @@ function slPick(cb,msg){
     var r=new FileReader(); r.onerror=function(){msg('تعذّر قراءة الصورة')};
     r.onload=function(){ var im=new Image(); im.onerror=function(){msg('صيغة غير مدعومة، جرّب JPG أو PNG')};
       im.onload=function(){ try{
-        var W=960,H=480,c=document.createElement('canvas'); c.width=W; c.height=H; var cx=c.getContext('2d');
-        var sc=Math.max(W/im.width,H/im.height), w=im.width*sc, h=im.height*sc; cx.drawImage(im,(W-w)/2,(H-h)/2,w,h);
+        var W=1280,H=400,c=document.createElement('canvas'); c.width=W; c.height=H; var cx=c.getContext('2d');
+        var sc=Math.min(W/im.width,H/im.height), w=im.width*sc, h=im.height*sc; cx.drawImage(im,(W-w)/2,(H-h)/2,w,h);
         var d=c.toDataURL('image/webp',.78); if(d.indexOf('image/webp')<0) d=c.toDataURL('image/jpeg',.8);
         if(d.length>180000){ d=c.toDataURL('image/jpeg',.6) }
         cb(d) }catch(e){ msg('حدث خطأ أثناء تجهيز الصورة') } };
@@ -2927,7 +2927,7 @@ function slPick(cb,msg){
 }
 function sldM(){ admV='sld'; db.collection('config').doc('slides').get().then(function(s){
   var L=slItems(s.exists?s.data():null);
-  var h=BK+'<h3>🖼 صور الواجهة</h3><p class="anst">الصور تتقلب لحالها فوق بالموقع (أفضل مقاس 2:1 مثل 1200×600). إذا حذفت كل الصور برجع الشكل الأصلي. الحد الأقصى 6 صور.</p>';
+  var h=BK+'<h3>🖼 صور الواجهة</h3><p class="anst">الصور تتقلب لحالها فوق بالموقع (أفضل مقاس 3.2:1 مثل 1280×400). إذا حذفت كل الصور برجع الشكل الأصلي. الحد الأقصى 6 صور.</p>';
   h+=L.length?L.map(function(x,i){return '<div class="row"><div class="slr"><img src="'+x.img+'" alt=""><button class="mb r" data-x="'+esc(x.id)+'" type="button">🗑 حذف</button></div></div>'}).join(''):'<p class="anst">ما في صور حالياً، الموقع يعرض الشكل الأصلي.</p>';
   h+='<p class="msg" id="slm"></p>'+(L.length<6?'<button class="mb" id="sladd" type="button">➕ إضافة صورة</button>':'');
   showM(h); bkb();
