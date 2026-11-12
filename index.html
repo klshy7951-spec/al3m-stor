@@ -1194,8 +1194,11 @@ function loginM(msg){
   $('lNew').onclick=function(){signUpM(msg)};
   $('lGoogle').onclick=googleIn;
 }
+function inTG(){ try{ return /tgWebApp(Data|Version|Platform)/.test(location.hash+location.search) || !!window.TelegramWebviewProxy || /Telegram/i.test(navigator.userAgent||'') }catch(e){ return false } }
+var TG_G_MSG='جوجل بيمنع الدخول من داخل تيليجرام. سجّل دخول بالإيميل وكلمة المرور (إنشاء حساب)، أو افتح الموقع من Chrome مباشرة.';
 function googleIn(){
   var m=$('lmsg'); if(m) m.textContent='';
+  if(inTG()){ if(m) m.textContent=TG_G_MSG; return }
   var pr=new firebase.auth.GoogleAuthProvider(); pr.setCustomParameters({prompt:'select_account'});
   auth.signInWithPopup(pr).then(function(r){
     var u=r.user, isNew=!!(r.additionalUserInfo&&r.additionalUserInfo.isNewUser);
@@ -1205,8 +1208,12 @@ function googleIn(){
     if(c==='x/domain') t='التسجيل متاح فقط بحساب @gmail.com';
     else if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request') t='';
     else if(c==='auth/popup-blocked') t='المتصفح منع النافذة، اسمح بالنوافذ المنبثقة وأعد المحاولة';
-    else if(c==='auth/unauthorized-domain') t='الدومين غير مضاف في Firebase (Authorized domains)';
+    else if(c==='auth/unauthorized-domain') t='الدومين غير مضاف في Firebase: أضف '+location.hostname+' في Authentication > Settings > Authorized domains';
     else if(c==='auth/operation-not-allowed') t='تسجيل Google غير مفعّل في Firebase';
+    else if(c==='auth/operation-not-supported-in-this-environment'||c==='auth/web-storage-unsupported') t='هذا المتصفح لا يدعم الدخول بجوجل. افتح الموقع من Chrome أو سجّل بالإيميل';
+    else if(c==='auth/network-request-failed') t='مشكلة بالاتصال، تأكد من الإنترنت (أو أطفئ VPN) وأعد المحاولة';
+    else if(c==='auth/internal-error') t='خطأ داخلي بالمتصفح، افتح الموقع من Chrome مباشرة (ليس من داخل تطبيق) وأعد المحاولة';
+    else if(c) t+=' ('+c+')';
     var mm2=$('lmsg'); if(mm2) mm2.textContent=t });
 }
 function signInM(msg){
@@ -2691,6 +2698,7 @@ function doCp(){
 }
 function gIn(){
   say('');
+  if(inTG()){ say(TG_G_MSG); return }
   var pr=new firebase.auth.GoogleAuthProvider(); pr.setCustomParameters({prompt:'select_account'});
   auth.signInWithPopup(pr).then(function(r){
     var u=r.user, isNew=!!(r.additionalUserInfo&&r.additionalUserInfo.isNewUser);
@@ -2701,8 +2709,12 @@ function gIn(){
     if(c==='x/domain') t='التسجيل متاح فقط بحساب @gmail.com';
     else if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request') t='';
     else if(c==='auth/popup-blocked') t='المتصفح منع النافذة، اسمح بالنوافذ المنبثقة وأعد المحاولة';
-    else if(c==='auth/unauthorized-domain') t='الدومين غير مضاف في Firebase (Authorized domains)';
+    else if(c==='auth/unauthorized-domain') t='الدومين غير مضاف في Firebase: أضف '+location.hostname+' في Authentication > Settings > Authorized domains';
     else if(c==='auth/operation-not-allowed') t='تسجيل Google غير مفعّل في Firebase';
+    else if(c==='auth/operation-not-supported-in-this-environment'||c==='auth/web-storage-unsupported') t='هذا المتصفح لا يدعم الدخول بجوجل. افتح الموقع من Chrome أو سجّل بالإيميل';
+    else if(c==='auth/network-request-failed') t='مشكلة بالاتصال، تأكد من الإنترنت (أو أطفئ VPN) وأعد المحاولة';
+    else if(c==='auth/internal-error') t='خطأ داخلي بالمتصفح، افتح الموقع من Chrome مباشرة (ليس من داخل تطبيق) وأعد المحاولة';
+    else if(c) t+=' ('+c+')';
     say(t)});
 }
 window.loginM=function(msg){ if(typeof auth==='undefined'){ if(window.needFb) needFb(); return } render('in',msg) };
