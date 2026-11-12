@@ -693,7 +693,7 @@ setTimeout(bootHide,4000);
 </defs></svg>
 <div class="top"><div class="bar">
   <div class="hb"><button class="menub" id="menuBtn" type="button" aria-label="القائمة"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="2.6" rx="1.3"/><rect x="3" y="10.7" width="18" height="2.6" rx="1.3"/><rect x="3" y="16.4" width="18" height="2.6" rx="1.3"/></svg></button><div class="acct"><button class="bal" id="balBtn" type="button">دخول</button><button class="plus" id="addBal" type="button" aria-label="إضافة رصيد">+</button></div><button class="bellb" id="bellBtn" type="button" aria-label="الإشعارات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a2.4 2.4 0 0 0 2.4-2.4H9.6A2.4 2.4 0 0 0 12 22zm7-6.4V11c0-3.3-1.8-6-4.8-6.7V3.6a2.2 2.2 0 0 0-4.4 0v.7C6.8 5 5 7.7 5 11v4.6l-2 2V19h18v-1.4l-2-2z"/></svg><b class="bdg" id="bellN" hidden></b></button></div>
-  <div class="brand"><img class="mark logoimg" alt="AL3M STOR" width="46" height="46"><span class="wm" role="img" aria-label="AL3M STOR"><span class="w1" data-t="AL3M" aria-hidden="true">AL3M</span><span class="w2" data-t="STOR" aria-hidden="true">STOR</span></span></div>
+  <div class="brand"><img class="mark logoimg" alt="AL3M STOR" width="46" height="46"><span class="wm" role="img" aria-label="AL3M STOR"><span class="wg" aria-hidden="true"><span class="w1" data-t="AL">AL</span><i class="a3" data-t="3">3</i><span class="w1" data-t="M">M</span></span><span class="w2" data-t="STOR" aria-hidden="true">STOR</span></span></div>
 </div></div>
 
 <div class="wrap">
@@ -704,7 +704,7 @@ setTimeout(bootHide,4000);
         <img class="emb logoimg" alt="" width="136" height="136">
         <svg class="coin"><use href="#i-coin"/></svg>
       </div>
-      <h1 class="wm" role="img" aria-label="AL3M STOR"><span class="w1" data-t="AL3M" aria-hidden="true">AL3M</span><span class="w2" data-t="STOR" aria-hidden="true">STOR</span></h1>
+      <h1 class="wm" role="img" aria-label="AL3M STOR"><span class="wg" aria-hidden="true"><span class="w1" data-t="AL">AL</span><i class="a3" data-t="3">3</i><span class="w1" data-t="M">M</span></span><span class="w2" data-t="STOR" aria-hidden="true">STOR</span></h1>
       <h2>شحن ألعاب بسهولة</h2>
       <p>اختر لعبتك، حدد باقتك، وأرسل طلبك على واتساب.</p>
     </div>
@@ -1413,7 +1413,7 @@ function acctM(){
   var IC_CPY='<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
   var IC_OK='<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
   var IC_GEAR='<svg viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L14.9 3h-4l-.4 2.9c-.6.3-1.2.6-1.7 1l-2.5-1-2 3.5L6.4 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.9h4l.4-2.9c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM12.9 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>';
-  var h='<div class="ac2"><div class="fc"><div class="fct"><span class="fcl">AL3M <b>STOR</b></span>'
+  var h='<div class="ac2"><div class="fc"><div class="fct"><span class="fcl">AL<i class="a3" data-t="3">3</i>M <b>STOR</b></span>'
    +'<button class="fcg" id="gear" type="button" aria-label="الإعدادات">'+IC_GEAR+'</button></div>'
    +'<div class="fcm" id="gmenu" hidden>'
    +'<button type="button" id="avpick">📷 تغيير الصورة</button>'
@@ -1717,7 +1717,7 @@ function topM(){
     return '<button class="tpc" data-m="'+i+'" type="button"><span class="tpa'+(pic?' pic':'')+'" style="--a:'+st.a+';--b:'+st.b+'">'+face+'<em>'+esc(m.name)+'</em></span><b>'+esc(m.name)+'</b></button>';
   }).join('');
   cards+='<button class="tpc" data-o="1" type="button"><span class="tpa pic" style="--a:#5fe08f;--b:#0e8c43"><img src="'+OTHERIMG+'" alt="طريقة أخرى"><em>واتساب</em></span><b>طريقة أخرى</b></button>';
-  showM('<div class="tpg"><h2>إضافة رصيد</h2><button class="tpcode" id="tpcode" type="button"><span class="tpci">'+TPCARD+'</span><span class="tpct"><b>كود شحن AL3M STOR</b><small>إدخال كود الشحن</small></span></button><div class="tpgrid">'+cards+'</div></div>');
+  showM('<div class="tpg"><h2>إضافة رصيد</h2><button class="tpcode" id="tpcode" type="button"><span class="tpci">'+TPCARD+'</span><span class="tpct"><b>كود شحن AL<i class="a3" data-t="3">3</i>M STOR</b><small>إدخال كود الشحن</small></span></button><div class="tpgrid">'+cards+'</div></div>');
   $('mbody').dataset.v='top';
   $('tpcode').onclick=redeemM;
   [].forEach.call($('mbody').querySelectorAll('button[data-m]'),function(b){b.onclick=function(){curM(+b.dataset.m)}});
@@ -1739,7 +1739,7 @@ function redeemCode(code){
 function redeemM(){
   if(banBlock())return;
   $('modal').classList.add('full');
-  var mk=document.querySelector('.brand .mark'), lg=mk?mk.outerHTML:'<b style="font:400 26px \'Russo One\',sans-serif;color:#b7791a">AL3M STOR</b>';
+  var mk=document.querySelector('.brand .mark'), lg=mk?mk.outerHTML:'<b style="font:400 26px \'Russo One\',sans-serif;color:#b7791a">AL<i class="a3" data-t="3">3</i>M STOR</b>';
   showM('<div class="tpg"><h2>استرداد كود الشحن</h2><div class="rcard"><div class="rlogo">'+lg+'</div>'
     +'<div class="rin"><label for="rcode">كود البطاقة</label><input id="rcode" type="text" dir="ltr" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ادخل الكود">'+TPCARD.replace('<svg','<svg class="ri"')+'</div>'
     +'<p class="msg" id="rmsg"></p><button class="rgo" id="rgo" type="button">'+TPCARD+'<span>شحن</span></button>'
@@ -2747,7 +2747,7 @@ function gBtn(){return '<div class="or">أو</div><button class="gbtn" id="agg" 
 function render(mode,msg){
   AM=mode; var o=ov(), cp=(mode==='cp'), def=detect(), h;
   h='<div class="ac">'+(cp?'':'<button class="ax" id="ax" type="button" aria-label="إغلاق">✕</button>')
-   +'<div class="ah"><img class="alg" alt="" src="'+LOGO+'"><b>AL3M STOR</b></div><div class="apill">AL3M STOR Account ✦</div>';
+   +'<div class="ah"><img class="alg" alt="" src="'+LOGO+'"><b>AL<i class="a3" data-t="3">3</i>M STOR</b></div><div class="apill">AL<i class="a3" data-t="3">3</i>M STOR Account ✦</div>';
   if(mode==='in'){
     h+='<h2>تسجيل الدخول</h2><p class="asub">أهلاً بعودتك، سجّل دخولك لمتابعة طلباتك.</p>'
      +'<label>البريد الإلكتروني</label>'+fld('mail',inp('ae','email','example@gmail.com','email',' dir="ltr"'))
@@ -2756,7 +2756,7 @@ function render(mode,msg){
      +'<p class="amsg" id="amsg">'+esc(msg||'')+'</p><button class="abtn" id="ago" type="button">دخول</button>'+gBtn()
      +'<p class="sw2">ليس لديك حساب؟ <a id="asw">إنشاء حساب جديد</a></p>';
   }else if(mode==='up'){
-    h+='<h2>إنشاء حساب جديد</h2><p class="asub">انضم إلى AL3M STOR وابدأ الشحن.</p>'
+    h+='<h2>إنشاء حساب جديد</h2><p class="asub">انضم إلى AL<i class="a3" data-t="3">3</i>M STOR وابدأ الشحن.</p>'
      +'<label>الاسم</label>'+fld('user',inp('an','text','اسمك','name',' maxlength="30"'))
      +'<label>البريد الإلكتروني</label>'+fld('mail',inp('ae','email','example@gmail.com','email',' dir="ltr"'))
      +phoneBlock(def,'')
@@ -3329,6 +3329,40 @@ html:root #modal.full,html:root #modal.full .mbox{background:var(--bg)!important
 .nav button.on i,.nav button.on i{background:#4d4d4d;box-shadow:none}
 .nav button.on svg,html[data-theme=light] .nav button.on svg,#nBot.on svg{fill:#fff;opacity:1}
 .nav button.on span,html[data-theme=light] .nav button.on span{color:#fff}
+</style>
+<style id="a3x">
+/* ===== حرف 3 الأحمر المتشقق (في كل الموقع) ===== */
+.wm .wg{display:inline-flex;gap:0;align-items:baseline}
+.a3{position:relative;display:inline-block;font-style:normal;line-height:1;font-family:inherit;font-weight:inherit;color:transparent;-webkit-text-fill-color:transparent}
+.a3::before,.a3::after{content:attr(data-t);position:absolute;left:0;top:0;font:inherit;font-style:normal;line-height:inherit;white-space:nowrap;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 100' preserveAspectRatio='none'%3E%3Cpath d='M38 0L30 14L40 26L27 41L37 53L24 68L31 80L20 100M40 26L54 31M27 41L10 47M37 53L52 63M24 68L8 75' fill='none' stroke='%23fff3c4' stroke-width='2.6'/%3E%3C/svg%3E"),linear-gradient(180deg,#ff9aa5 0,#ff3150 28%,#e10d2b 50%,#9a0719 52%,#e00f2c 76%,#ff6577 100%);background-size:100% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 .05em 0 #55040f) drop-shadow(0 0 .08em rgba(255,40,70,.85))}
+.a3::before{clip-path:polygon(-60% -60%,63% -60%,63% 0,50% 14%,67% 26%,45% 41%,62% 53%,40% 68%,52% 80%,33% 100%,33% 160%,-60% 160%);animation:a3a 4.6s ease-in-out infinite,a3g 2.2s ease-in-out infinite}
+.a3::after{clip-path:polygon(63% -60%,160% -60%,160% 160%,33% 160%,33% 100%,52% 80%,40% 68%,62% 53%,45% 41%,67% 26%,50% 14%,63% 0);animation:a3b 4.6s ease-in-out infinite,a3g 2.2s ease-in-out infinite}
+@keyframes a3a{0%,68%,100%{transform:none}72%{transform:translate(-.06em,-.035em) rotate(-3deg)}78%{transform:translate(-.02em,-.01em) rotate(-1deg)}85%{transform:none}}
+@keyframes a3b{0%,68%,100%{transform:none}72%{transform:translate(.06em,.04em) rotate(3deg)}78%{transform:translate(.02em,.015em) rotate(1deg)}85%{transform:none}}
+@keyframes a3g{0%,100%{opacity:.92}50%{opacity:1;filter:drop-shadow(0 .05em 0 #55040f) drop-shadow(0 0 .17em rgba(255,70,100,1))}}
+@media (prefers-reduced-motion:reduce){.a3::before,.a3::after{animation:none}}
+
+/* ===== بطاقة البروفايل على شكل Free Fire (الاسم + الـID + الصورة فقط) ===== */
+.ac2 .fc{container-type:inline-size;aspect-ratio:742/288;padding:0;border-radius:10px;overflow:visible;
+  background:linear-gradient(104deg,transparent 38%,rgba(255,255,255,.11) 52%,transparent 66%),radial-gradient(55% 80% at 88% 22%,rgba(255,255,255,.16),transparent 70%),linear-gradient(135deg,#1c1526 0,#0b0910 55%,#17111f 100%);box-shadow:0 10px 26px rgba(0,0,0,.5)}
+.ac2 .fc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:13%;z-index:0;background:linear-gradient(180deg,#ffc21a,#f09a00);clip-path:polygon(0 0,38% 0,100% 26%,100% 100%,0 100%);border-radius:10px 0 0 10px}
+.ac2 .fc::after{content:"";position:absolute;left:2.2%;top:5%;width:6%;height:15%;z-index:1;background:repeating-linear-gradient(135deg,#f6b400 0 3px,transparent 3px 6px)}
+.ac2 .fct{position:absolute;top:0;left:0;right:0;height:24%;padding:0 3% 0 12%;z-index:3}
+.ac2 .fcl{font:italic 900 20px/1 'Russo One','Tajawal',sans-serif;font-size:6.2cqw;letter-spacing:.5px}
+.ac2 .fcg{width:34px;height:34px;width:9cqw;height:9cqw}
+.ac2 .fcg svg{width:26px;height:26px;width:7cqw;height:7cqw}
+.ac2 .fcb{position:absolute;inset:0;margin:0;padding:0;min-height:0;background:none;clip-path:none;box-shadow:none;pointer-events:none;z-index:2}
+.ac2 .fcb::before{content:"";position:absolute;left:11%;right:0;top:24%;bottom:17%;background:linear-gradient(180deg,#e8e8ea,#dcdcdf);clip-path:polygon(3% 0,100% 0,100% 100%,0 100%)}
+.ac2 .fcav{left:12%;top:31%;width:18.5%;height:auto;aspect-ratio:1;padding:.6cqw;padding:3px;background:#fff;box-shadow:0 0 0 2px #1a1a22,0 4px 10px rgba(0,0,0,.5);pointer-events:auto;z-index:3}
+.ac2 .fcav .fcph{font-size:9cqw}
+.ac2 .fcn{position:absolute;left:35%;right:3%;top:30%;font:800 22px/1.25 'Tajawal',sans-serif;font-size:6.8cqw;color:#2b2b30;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac2 .fcn::before{content:"\300E";margin-right:.15em}.ac2 .fcn::after{content:"\300F";margin-left:.15em}
+.ac2 .fcu{right:3%;bottom:3.5%;z-index:3;pointer-events:auto;color:#fff;font:600 13px/1 'Tajawal',sans-serif;font-size:4.3cqw;gap:1.5cqw}
+.ac2 .fcu b{color:#fff;font-weight:600}
+.ac2 .fcc{width:5.6cqw;height:5.6cqw;min-width:20px;min-height:20px;background:none}
+.ac2 .fcc svg{stroke:#fff;width:80%;height:80%}
 </style>
 </body>
 </html>
