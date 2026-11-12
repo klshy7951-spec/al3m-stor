@@ -556,6 +556,49 @@ html[data-theme=light] .notice{color:#3a3a4a}
 @media (prefers-reduced-motion:reduce){#annTick .tk{animation-duration:90s}}
 .anps{display:flex;gap:6px;margin:4px 0 10px}.anps button{flex:1;border:0;border-radius:10px;padding:9px 4px;background:#242435;color:var(--ink);font:800 14px 'Tajawal',sans-serif}.anps button.on{outline:2px solid var(--gold)}
 .slr{display:flex;align-items:center;gap:10px}.slr img{width:96px;height:30px;object-fit:contain;border-radius:8px;flex:none}.slr button{margin:0}
+
+/* ===== تعديلات: الشريط، الوضع الفاتح، بروفايل الأدمن ===== */
+#annTick,#annTick.gold,#annTick.green,#annTick.red{background:#1f1f1f!important;color:#fff!important;box-shadow:0 0 0 1px #2e2e2e!important;border-radius:12px;font:700 16px/2.6 'Tajawal',sans-serif}
+#annTick .tg span{color:#fff!important}
+html[data-theme=light] #annTick,html[data-theme=light] #annTick .tg span{color:#fff!important}
+html[data-theme=light] .oact button{background:#e6e1d4;color:#17171f}
+html[data-theme=light] .oact button.rt{background:#f3bf4e;color:#3a2203}
+html[data-theme=light] .oact .otm{color:#5b5b6e}
+html[data-theme=light] .ac2 .card{background:linear-gradient(#ffffff,#f1ede3);box-shadow:0 0 0 1px #d9d4c6;color:#17171f}
+html[data-theme=light] .ac2 .lbl,html[data-theme=light] .ac2 .hnt{color:#4a4a5a}
+html[data-theme=light] .ac2 .bott b{color:#17171f}
+html[data-theme=light] .ac2 .idrow{background:#17171f}
+html[data-theme=light] .ac2 .idn{background:none;-webkit-text-fill-color:#ffe6a6;color:#ffe6a6}
+html[data-theme=light] .ac2 h3.oh{color:#8a5207}
+html[data-theme=light] .ac2 .st.on{background:rgba(20,168,81,.15);color:#0b7a3b}
+html[data-theme=light] .ac2 .st.off{background:rgba(225,13,43,.12);color:#b30f24}
+html[data-theme=light] .ac2 .row b,html[data-theme=light] .ac2 .row small{color:#17171f}
+html[data-theme=light] .ac2 .row small{color:#4a4a5a}
+.urow{display:flex;gap:8px;margin-top:8px}.urow .mb{margin:0;flex:1;padding:10px 6px;font-size:15px}
+.ffc{margin:6px 0 12px;border-radius:14px;overflow:hidden;box-shadow:0 8px 22px rgba(0,0,0,.35);direction:ltr;background:#101010}
+.ffs{height:12px;background:repeating-linear-gradient(115deg,#f6b800 0 14px,#101010 14px 22px)}
+.ffb{display:flex;align-items:center;gap:12px;padding:12px;background:#ececec;color:#111;position:relative}
+.ffa{flex:none;width:74px;height:74px;border-radius:6px;background:#0b0b10;border:2px solid #3a3a3a;display:grid;place-items:center;overflow:hidden;font-size:34px;color:#fff}
+.ffa img{width:100%;height:100%;object-fit:cover;display:block}
+.ffi{flex:1;min-width:0;text-align:left}
+.ffn{font:900 20px/1.3 'Tajawal',sans-serif;color:#111;word-break:break-word}
+.ffd{display:flex;align-items:center;gap:8px;margin-top:6px;font:700 15px 'Tajawal',sans-serif;color:#333}
+.ffd b{letter-spacing:1px;color:#111}
+.ffcp{border:0;background:#111;border-radius:8px;width:32px;height:32px;display:grid;place-items:center;padding:0;cursor:pointer}
+.ffcp svg{width:18px;height:18px;fill:none;stroke:#f6b800;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ffg{flex:none;align-self:flex-start;width:38px;height:38px;border:0;border-radius:50%;background:#111;display:grid;place-items:center;padding:0;cursor:pointer}
+.ffg svg{width:22px;height:22px;fill:#fff}
+.ffmenu{margin:0 0 10px}.ffmenu>.mb{margin:0 0 8px}
+.ffcur{margin:6px 0;font-weight:800}
+.oh2{margin:14px 0 8px;font-size:18px}
+.ford{background:#0a0a11;border-radius:14px;padding:10px 14px;margin:0 0 8px;box-shadow:0 0 0 1px #2a2a3a}
+.ford b{font-size:16px;line-height:1.5}.ford small{display:block;color:var(--muted);margin-top:2px}
+.fot{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.fst{flex:none;padding:3px 10px;border-radius:999px;font:800 13px 'Tajawal',sans-serif}
+.fst.p{background:#f3bf4e;color:#3a2203}.fst.a{background:#14a851;color:#fff}.fst.r{background:#e10d2b;color:#fff}
+html[data-theme=light] .ford{background:#fff;box-shadow:0 0 0 1px #d9d4c6;color:#17171f}
+html[data-theme=light] .ford b{color:#17171f}html[data-theme=light] .ford small{color:#4a4a5a}
+html[data-theme=light] .ffmenu .ffcur{color:#17171f}
 </style>
 </head>
 <body>
@@ -633,8 +676,7 @@ setTimeout(bootHide,4000);
       <h2>شحن ألعاب بسهولة</h2>
       <p>اختر لعبتك، حدد باقتك، وأرسل طلبك على واتساب.</p>
     </div>
-    <div class="notice">الأسعار بالليرة السورية، ويُخصم الطلب من رصيدك. اضغط + لإضافة رصيد.</div>
-    <button class="mb" id="instBtn" type="button" style="max-width:420px;margin:0 auto 14px">📲 ثبّت الموقع على شاشتك</button>
+        <button class="mb" id="instBtn" type="button" style="max-width:420px;margin:0 auto 14px">📲 ثبّت الموقع على شاشتك</button>
     <div class="search hsearch"><input id="hq" type="search" placeholder="بحث" aria-label="بحث في الأقسام" autocomplete="off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></div>
     <div class="cards" id="catcards"></div>
     <p style="text-align:center;margin:16px 0 0"><button class="bk" id="faqLink" type="button">❓ الأسئلة الشائعة والشروط</button></p>
@@ -1107,6 +1149,7 @@ if (fbOK){
     _prOK=1; schedulePubBotCat(); availRefresh(); if(first){first=0;bootStep('prices')}
   },function(){ if(first){first=0;bootStep('prices')} })},0);
   var auth=firebase.auth(), db=firebase.firestore(), FV=firebase.firestore.FieldValue, offs=[]; db.settings({experimentalAutoDetectLongPolling:true,merge:true});
+  (function(){ var _so=auth.signOut.bind(auth); auth.signOut=function(){ var u=auth.currentUser, p=Promise.resolve(); if(u){ p=db.collection('users').doc(u.uid).update({tgId:FV.delete(),tgAt:FV.delete()}).catch(function(){}); try{window.tgd={id:'',at:0}}catch(e){} } return p.then(function(){return _so()}) } })();
   auth.onAuthStateChanged(function(u){
     offs.forEach(function(f){f()}); offs=[]; seenN={o:null,t:null}; lastSt={o:null,t:null}; me=u; banned=false; banUntil=0; banDays=0; bal=0; cid=''; cidSt=0; mine=[]; mineT=[]; mineW=[]; pend=[]; pendT=[]; authReady=true; chip();
     if(!u){ flushQ(); bootStep('auth'); return }
@@ -1442,10 +1485,12 @@ function admUsers(){
     var q=($('uq').value||'').trim().toLowerCase(), l=(usrCache||[]).filter(function(u){return !q||((u.name||'')+' '+(u.email||'')+' '+(u.cid||'')).toLowerCase().indexOf(q)>=0}).slice(0,300);
     $('umsg').textContent=(usrCache?usrCache.length:0)+' مستخدم'+(q?' — النتائج: '+l.length:'');
     $('ulist').innerHTML=l.map(function(u){var b=u.banned&&(!u.banUntil||Date.now()<u.banUntil);
-      return '<div class="ord"><b>'+esc(u.name||'بدون اسم')+(b?' 🚫':'')+'</b><small dir="ltr" style="text-align:right">'+esc(u.email||'')+'</small><small>ID: '+esc(u.cid||'—')+' · الرصيد: '+money(u.balance||0)+'</small>'+(((u.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase()||u.cid==='999999999')?'':'<button class="mb r" data-del="'+esc(u._id)+'" type="button" style="margin-top:8px">🗑 حذف</button>')+'</div>'}).join('');
+      return '<div class="ord"><b>'+esc(u.name||'بدون اسم')+(b?' 🚫':'')+'</b><small dir="ltr" style="text-align:right">'+esc(u.email||'')+'</small><small>ID: '+esc(u.cid||'—')+' · الرصيد: '+money(u.balance||0)+'</small>'+'<div class="urow">'+(((u.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase()||u.cid==='999999999')?'':'<button class="mb r" data-del="'+esc(u._id)+'" type="button">🗑 حذف</button>')+'<button class="mb g" data-chk="'+esc(u._id)+'" type="button">🔍 فحص الملف الشخصي</button></div></div>'}).join('');
   }
   $('uq').oninput=draw;
   $('ulist').onclick=function(e){
+    var cb=e.target.closest&&e.target.closest('button[data-chk]');
+    if(cb){ var cu=(usrCache||[]).filter(function(x){return x._id===cb.dataset.chk})[0]; if(cu) admProfile(cu); return }
     var b=e.target.closest&&e.target.closest('button[data-del]'); if(!b) return;
     var u=(usrCache||[]).filter(function(x){return x._id===b.dataset.del})[0]; if(!u) return;
     if((u.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase()||u.cid==='999999999'){return}
@@ -1462,6 +1507,55 @@ function admUsers(){
     usrCache=q.docs.map(function(d){var x=d.data();x._id=d.id;return x}).sort(function(a,b){return String(a.cid||'').localeCompare(String(b.cid||''))});
     if(admV==='usr'&&$('uq')) draw();
   }).catch(function(){ if($('umsg')) $('umsg').textContent='فشل التحميل (تحقق من قواعد Firebase)' });
+}
+
+var ORD_LBL={pending:['قيد التنفيذ','p'],accepted:['مكتمل','a'],rejected:['مرفوض','r']};
+function admProfile(u){
+  admV='prof';
+  var isAd=((u.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase()||u.cid==='999999999');
+  var IC_CPY='<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
+  var IC_GEAR='<svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm8.2 5.3-.9-.5c.1-.4.1-.9.1-1.3s0-.9-.1-1.3l.9-.5a.6.6 0 0 0 .2-.8l-1.6-2.8a.6.6 0 0 0-.8-.2l-.9.5c-.7-.6-1.4-1-2.2-1.3l-.1-1a.6.6 0 0 0-.6-.5H11a.6.6 0 0 0-.6.5l-.1 1c-.8.3-1.5.7-2.2 1.3l-.9-.5a.6.6 0 0 0-.8.2L4.8 9.4a.6.6 0 0 0 .2.8l.9.5c-.1.4-.1.9-.1 1.3s0 .9.1 1.3l-.9.5a.6.6 0 0 0-.2.8l1.6 2.8c.2.3.5.4.8.2l.9-.5c.7.6 1.4 1 2.2 1.3l.1 1c0 .3.3.5.6.5h3.2c.3 0 .6-.2.6-.5l.1-1c.8-.3 1.5-.7 2.2-1.3l.9.5c.3.1.6.1.8-.2l1.6-2.8a.6.6 0 0 0-.2-.8Z"/></svg>';
+  var h='<button class="bk" id="abk" type="button">← رجوع</button>'
+   +'<div class="ffc"><div class="ffs"></div><div class="ffb">'
+   +'<div class="ffa">'+(u.avatar?'<img alt="" src="'+u.avatar+'">':'<span>👤</span>')+'</div>'
+   +'<div class="ffi"><div class="ffn">'+esc(u.name||'بدون اسم')+'</div>'
+   +'<div class="ffd" dir="ltr"><span>UID: <b>'+esc(u.cid||'—')+'</b></span>'+(u.cid?'<button class="ffcp" id="pcp" type="button" aria-label="نسخ">'+IC_CPY+'</button>':'')+'</div></div>'
+   +'<button class="ffg" id="pgear" type="button" aria-label="ضبط">'+IC_GEAR+'</button></div></div>'
+   +'<div class="ffmenu" id="pmenu" hidden><button class="mb" id="pbal" type="button">💰 تعديل الرصيد</button>'+(isAd?'':'<button class="mb r" id="pdel" type="button">🗑 حذف الحساب</button>')+'<div id="pbalbox" hidden>'
+   +'<p class="ffcur">الرصيد الحالي: <b id="pcur">'+money(u.balance||0)+'</b></p>'
+   +'<input id="pamt" type="text" inputmode="decimal" placeholder="المبلغ" dir="ltr"><div class="pays" style="margin:8px 0"><label><input type="radio" name="pop" value="add" checked><span>زيادة ➕</span></label><label><input type="radio" name="pop" value="sub"><span>نقص ➖</span></label><label><input type="radio" name="pop" value="zero"><span>تصفير 🔄</span></label></div>'
+   +'<button class="mb ok" id="pgo" type="button">تنفيذ</button></div></div>'
+   +'<p class="msg" id="pmsg"></p>'
+   +'<h3 class="oh2">الطلبات</h3><div id="pord"><p class="msg" style="color:#9c9cb0">جاري التحميل...</p></div>';
+  showM(h); $('mbody').dataset.v='admin';
+  $('abk').onclick=function(){ adminM('usr') };
+  function pm(t,ok){ var m=$('pmsg'); if(m){ m.style.color=ok?'#14a851':''; m.textContent=t||'' } }
+  if($('pcp')) $('pcp').onclick=function(){ copyTxt(u.cid) };
+  $('pgear').onclick=function(){ $('pmenu').hidden=!$('pmenu').hidden };
+  $('pbal').onclick=function(){ $('pbalbox').hidden=!$('pbalbox').hidden };
+  $('pgo').onclick=function(){
+    var op=document.querySelector('input[name=pop]:checked').value, zero=op==='zero', sub=op==='sub', v=parseFloat(($('pamt').value||'').replace(/[\u0660-\u0669]/g,function(c){return c.charCodeAt(0)-1632}));
+    if(!zero&&!(v>0)){ pm('مبلغ غير صحيح'); return }
+    var btn=this; btn.disabled=true; pm('');
+    var ref=db.collection('users').doc(u._id), nb=0;
+    db.runTransaction(function(t){ return t.get(ref).then(function(x){ var b=(x.data()||{}).balance||0; if(sub&&b<v) throw new Error('LOW'); nb=zero?0:(sub?b-v:b+v); t.update(ref,{balance:nb}) }) })
+    .then(function(){ u.balance=nb; $('pcur').textContent=money(nb); $('pamt').value=''; pm((zero?'تم التصفير ✓':sub?'تم الخصم ✓':'تمت الإضافة ✓'),true) })
+    .catch(function(e){ pm((e&&e.message==='LOW')?'رصيد الزبون أقل من المبلغ':'فشل التعديل') }).then(function(){ btn.disabled=false });
+  };
+  if($('pdel')) $('pdel').onclick=function(){
+    if(!confirm('حذف نهائي للحساب:\n'+(u.name||'بدون اسم')+'\n'+(u.email||'')+'\nID: '+(u.cid||'—')+'\nالرصيد: '+money(u.balance||0)+'\n\nما في تراجع. متأكد؟')) return;
+    var cidv=u.cid, ref=db.collection('users').doc(u._id), b=this; b.disabled=true;
+    busyP(db.collection('deleted').doc(u._id).set({email:u.email||'',name:u.name||'',cid:cidv||'',at:FV.serverTimestamp()}).catch(function(){}).then(function(){
+      var bt=db.batch(); bt.delete(ref); if(cidv) bt.delete(db.collection('ids').doc(cidv)); return bt.commit();
+    })).then(function(){ usrCache=(usrCache||[]).filter(function(x){return x._id!==u._id}); toast('تم حذف الحساب ✓'); adminM('usr') })
+    .catch(function(){ b.disabled=false; pm('فشل الحذف (تحقق من قواعد Firebase)') });
+  };
+  db.collection('orders').where('uid','==',u._id).get().then(function(q){
+    if(admV!=='prof'||!$('pord')) return;
+    var a=q.docs.map(function(d){var x=d.data();x.id=d.id;return x}).sort(function(x,y){return tsMs(y.createdAt)-tsMs(x.createdAt)});
+    $('pord').innerHTML=a.length?a.map(function(o){ var st=ORD_LBL[o.status]||['—','p'], t=tsMs(o.createdAt);
+      return '<div class="ford"><div class="fot"><b>'+(o.no?'#'+esc(o.no)+' · ':'')+esc(o.game)+' — '+esc(o.pkg)+'</b><span class="fst '+st[1]+'">'+st[0]+'</span></div><small>'+money(o.price||0)+(t?' · <span dir="ltr">'+fdt(t)+'</span>':'')+'</small></div>' }).join(''):'<p class="msg" style="color:#9c9cb0">لا يوجد طلبات لهذا المستخدم.</p>';
+  }).catch(function(){ if($('pord')) $('pord').innerHTML='<p class="msg">فشل تحميل الطلبات (تحقق من قواعد Firebase)</p>' });
 }
 function admBal(btn){
   var op=document.querySelector('input[name=aop]:checked').value, zero=op==='zero', sub=op==='sub';
@@ -2801,7 +2895,7 @@ function annDraw(){
   [].forEach.call(bar.querySelectorAll('.ann'),function(el){ el.querySelector('button').onclick=function(){ try{sessionStorage.setItem('ann_'+el.dataset.i,1)}catch(e){} annSig='x'; annDraw() } });
   if(!tk.length){ tick.hidden=true; tick.innerHTML=''; }
   else{
-    var one=tk.map(function(x){return '<span>'+({gold:'📢',red:'⚠️',green:'🎉'}[x.c||'gold']||'📢')+' '+esc(x.text)+'</span>'}).join(''), g=one, len=tk.reduce(function(t,x){return t+x.text.length+4},0);
+    var one=tk.map(function(x){return '<span>'+esc(x.text)+'</span>'}).join(''), g=one, len=tk.reduce(function(t,x){return t+x.text.length+4},0);
     while(g.length<one.length*Math.ceil(80/Math.max(len,1))&&g.length<20000) g+=one;
     tick.className=tk[0].c||'gold';
     tick.innerHTML='<div class="tk" style="animation-duration:'+Math.max(12,Math.round(len*Math.ceil(80/Math.max(len,1))*0.28))+'s"><div class="tg">'+g+'</div><div class="tg">'+g+'</div></div>';
