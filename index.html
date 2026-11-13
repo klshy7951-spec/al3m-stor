@@ -670,8 +670,11 @@ html[data-theme=light] #boot .bsk::after{background:linear-gradient(100deg,trans
 #boot .bsk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 12px}
 #boot .bsk-card{width:100%;aspect-ratio:1;border-radius:12px}
 #boot .bsk-line{width:62%;height:12px;border-radius:6px;margin:10px auto 0}
+#boot .bl{position:absolute;left:50%;top:40%;width:140px;height:140px;margin:-70px 0 0 -70px;z-index:3;display:grid;place-items:center;border-radius:50%;background:rgba(8,8,12,.78);box-shadow:0 0 0 1px rgba(255,255,255,.06),0 10px 40px rgba(0,0,0,.7)}
+#boot .bl img{width:104px;height:104px;border-radius:50%;object-fit:cover;display:block}
+#boot .bl::before{content:"";position:absolute;inset:0;border-radius:50%;box-sizing:border-box;border:6px solid rgba(255,255,255,.14);border-top-color:#f3bf4e;border-right-color:#f3bf4e;filter:drop-shadow(0 0 6px rgba(243,191,78,.65));animation:bootspin 1s linear infinite}
 </style>
-<div id="boot" aria-hidden="true"><div class="bsk-top"><div class="bsk-g"><span class="bsk bsk-c"></span><span class="bsk bsk-pill"></span><span class="bsk bsk-c"></span></div><div class="bsk-g"><span class="bsk bsk-logo"></span><span class="bsk bsk-name"></span></div></div><div class="bsk-wrap"><span class="bsk bsk-banner"></span><span class="bsk bsk-search"></span><div class="bsk-grid"><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div></div></div></div>
+<div id="boot" aria-hidden="true"><div class="bsk-top"><div class="bsk-g"><span class="bsk bsk-c"></span><span class="bsk bsk-pill"></span><span class="bsk bsk-c"></span></div><div class="bsk-g"><span class="bsk bsk-logo"></span><span class="bsk bsk-name"></span></div></div><div class="bsk-wrap"><span class="bsk bsk-banner"></span><span class="bsk bsk-search"></span><div class="bsk-grid"><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div><div><span class="bsk bsk-card"></span><span class="bsk bsk-line"></span></div></div></div><div class="bl"><img class="logoimg" alt="" width="108" height="108"></div></div>
 <style id="al3m-extra">
 .redtxt{color:#ff3b3b;font-weight:800}
 .tbg{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.22em;margin-inline-start:6px}.tbg svg{width:100%;height:100%;display:block}
@@ -695,11 +698,22 @@ html[data-theme=light] .tmer{background:#f2e9ff;border-color:#b98be0}html[data-t
 <script src="images.js?v=4"></script>
 <div id="ldr" hidden aria-hidden="true"><div class="orb"><i></i><i></i></div></div>
 <script>
-var bootNeed={load:1,auth:0,prices:0};
+var bootNeed={load:1,auth:0,prices:0}, bootPoll=0, bootT0=Date.now();
 function bootHide(){var b=document.getElementById('boot');if(!b||b.className==='off')return;b.className='off';setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b)},500)}
-function bootStep(k){bootNeed[k]=1;if(bootNeed.load&&bootNeed.auth&&bootNeed.prices)bootHide()}
+function bootImgsOK(){
+  var L=document.querySelectorAll('img'),i,m,r,H=window.innerHeight||800;
+  for(i=0;i<L.length;i++){ m=L[i]; if(m.closest&&m.closest('#boot'))continue; if(!m.offsetWidth)continue;
+    r=m.getBoundingClientRect(); if(r.bottom<0||r.top>H+120)continue;
+    if(m.loading==='lazy')m.loading='eager';
+    if(!m.complete)return false }
+  return true }
+function bootTry(){
+  if(!(bootNeed.load&&bootNeed.auth&&bootNeed.prices))return;
+  if(bootImgsOK()||Date.now()-bootT0>9000){ setTimeout(bootHide,150); return }
+  if(!bootPoll){ bootPoll=1; setTimeout(function(){bootPoll=0;bootTry()},150) } }
+function bootStep(k){bootNeed[k]=1;bootTry()}
 window.addEventListener('load',function(){bootStep('load')});
-setTimeout(bootHide,4000);
+setTimeout(bootHide,12000);
 </script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
 <symbol id="i-emblem" viewBox="0 0 100 100">
@@ -3344,7 +3358,7 @@ var wtry=0;
 function welcome(){
   if(wdone) return; var a=aud('welcome'), p;
   if(!a){ if(wtry++<60) setTimeout(welcome,300); return }
-  try{ cur=a; a.volume=0.6; a.currentTime=0; p=a.play() }catch(e){}
+  try{ cur=a; a.volume=0.25; a.currentTime=0; p=a.play() }catch(e){}
   if(p&&p.then) p.then(function(){ wdone=true; try{sessionStorage.setItem('al3m_wel','1')}catch(e){}; off() }).catch(function(){});
 }
 function first(){ welcome() }
