@@ -673,15 +673,14 @@ html[data-theme=light] #boot .bsk::after{background:linear-gradient(100deg,trans
 <style id="al3m-extra">
 .redtxt{color:#ff3b3b;font-weight:800}
 .tbg{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.22em;margin-inline-start:6px}.tbg svg{width:100%;height:100%;display:block}
-.tstrip{display:flex;justify-content:space-between;gap:6px}
-.tl{flex:1;display:grid;place-items:center;padding:8px 0;border-radius:14px;background:#0c0c12;box-shadow:0 0 0 1px #2a2a3a;filter:grayscale(1) opacity(.4)}
-.tl.on{filter:none;box-shadow:0 0 0 2px var(--gold)}.tl svg{width:34px;height:34px}
-.tbar{height:10px;border-radius:9px;background:#0c0c12;margin:12px 0 6px;overflow:hidden;box-shadow:inset 0 1px 3px #000}
-.tbar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#b7791a,#ffe6a6)}
+.tcur{display:flex;align-items:center;gap:12px;font:800 22px 'Tajawal',sans-serif;color:#fff}
+.tbi{flex:none;width:46px;height:46px;display:block}.tbi svg{width:100%;height:100%;display:block}.tbi.lk{filter:grayscale(.3) opacity(.55)}
+.trow{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-top:1px solid #2a2a3a}
+.tin{flex:1;position:relative;padding-inline-end:28px}.tin b{display:block;font:800 17px 'Tajawal',sans-serif;color:#fff}.tin small{display:block;color:#b5b5c8;font-weight:700;margin-top:4px}
+.tin em{position:absolute;top:0;inset-inline-end:0;font-style:normal;font-size:18px}.tin em.ok{color:#3cea82}
+.tbar{height:12px;border-radius:9px;background:#0c0c12;margin:10px 0 4px;overflow:hidden;box-shadow:inset 0 1px 3px #000}
+.tbar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#16a34a,#4ade80)}
 .tnote{display:block;text-align:center;color:#cfcfe0;font:700 14px/1.6 'Tajawal',sans-serif;margin-top:6px;cursor:default}
-#live{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:30;transform:translate(-50%,200%);transition:transform .45s cubic-bezier(.2,.9,.3,1);max-width:92%;display:flex;align-items:center;gap:10px;background:#12121b;color:#fff;border-radius:16px;padding:10px 16px;font:700 14px 'Tajawal',sans-serif;box-shadow:0 0 0 1px rgba(60,234,130,.5),0 10px 24px rgba(0,0,0,.7);pointer-events:none}
-#live.on{transform:translate(-50%,0)}#live b{display:block;font-size:15px}#live span{color:#cfcfe0}
-#live i{width:10px;height:10px;border-radius:50%;background:#3cea82;box-shadow:0 0 10px #3cea82;flex:none}
 </style>
 <script src="images.js?v=3"></script>
 <div id="ldr" hidden aria-hidden="true"><div class="orb"><i></i><i></i></div></div>
@@ -876,8 +875,8 @@ var BASE = 140, PROFIT = 5;   // كل 140 ل.س = ربح 5 ل.س
 function price(C, it){ return C.fc ? Math.ceil(it[1] * (BASE + PROFIT) / BASE - 1e-9) : it[1]; }
 
 // ===== الأقسام الرئيسية =====
-var FREE_CAT = {name:"أشياء مجانا", en:"FREE STUFF", games:[], em:'<b style="font-size:56px;line-height:1">🎁</b>', pages:[
-  {name:"بويا باس مجاني", en:"FREE BOOYAH PASS", em:'<b style="font-size:64px;line-height:1">🎫</b>', red:1,
+var FREE_CAT = {name:"أشياء مجانا", en:"FREE STUFF", games:[], img:""+(IMG.cat_free||""), em:'<b style="font-size:56px;line-height:1">🎁</b>', pages:[
+  {name:"بويا باس مجاني", en:"FREE BOOYAH PASS", em:"<img loading='lazy' decoding='async' src='"+(IMG.bp_free||"")+"' alt='بويا باس مجاني'>", red:1,
    text:"⚠️ عشان تاخد بويا باس مجاني لازم تصنع 5 حسابات لفل 15 في فري فاير وتسلّمنا إياهم، وبعدها بتاخد البويا باس مجاناً.\n\nاضغط على الزر تحت لتكلمنا وتطلب البويا باس.",
    btns:[{t:"💬 اطلب البويا باس — كلمنا واتساب", wa:"مرحباً AL3M STOR، أريد طلب بويا باس مجاني (سأسلّمكم 5 حسابات لفل 15 في فري فاير)."}]}
 ]};
@@ -1167,7 +1166,7 @@ function isAdmin(){return !!(me && me.email && me.email.toLowerCase()===ADMIN_EM
 function showM(h){delete $('mbody').dataset.v;$('mbody').innerHTML=h;$('modal').hidden=false}
 function closeM(){$('modal').hidden=true;$('modal').classList.remove('full');$('modal').classList.remove('lock');warnBusy=false;setNav('nHome');if(tiv){clearInterval(tiv);tiv=null}}
 function setErr(t){$('err').textContent=t||""}
-function chip(){ bellBadge(); $('balBtn').textContent = me ? moneyShort(bal) : ((fbOK&&!authReady) ? "..." : "دخول"); var a=isAdmin(); document.body.classList.toggle('adm',a); $('nAdm').hidden=!a; var an=a?pend.length+pendT.length:0; $('nAdmN').textContent=an; $('nAdmN').hidden=!an; if(a) schedulePubBotCat(); }
+function chip(){ bellBadge(); try{ var hb=$('balBtn'),ht=$('hdrTier'); if(!ht){ ht=document.createElement('span'); ht.id='hdrTier'; ht.className='tbg'; ht.style.cssText='width:30px;height:30px;margin:0 4px'; hb.parentNode.insertBefore(ht,hb) } var tn=me?myTier():0; ht.innerHTML=tn?tierIc(tn):''; ht.hidden=!tn }catch(e){} $('balBtn').textContent = me ? moneyShort(bal) : ((fbOK&&!authReady) ? "..." : "دخول"); var a=isAdmin(); document.body.classList.toggle('adm',a); $('nAdm').hidden=!a; var an=a?pend.length+pendT.length:0; $('nAdmN').textContent=an; $('nAdmN').hidden=!an; if(a) schedulePubBotCat(); }
 chip();
 var ST={pending:"قيد التنفيذ ⌛",accepted:"تم التنفيذ ✅",rejected:"مرفوض ❌ (أُرجع الرصيد)"}, STT={pending:"قيد المراجعة ⌛",approved:"تمت الإضافة ✅",rejected:"مرفوض ❌"};
 
@@ -1466,17 +1465,19 @@ var TIERS=[7000,14000,28000,70000], _tg=0;
 function spentTotal(){ var t=0; (mine||[]).forEach(function(o){ if(o.status==='accepted') t+=Number(o.price)||0 }); return t }
 function tierOf(t){ var n=0; TIERS.forEach(function(v,i){ if(t>=v) n=i+1 }); return n }
 function myTier(){ return window.merch?5:tierOf(spentTotal()) }
-function tierIc(n){ var C=[['#f0a86a','#7a3d14'],['#ffffff','#7a8497'],['#fff0a0','#c27d05'],['#a6f0ff','#1a6fd0'],['#e6b8ff','#5b1fc0']][n-1], id='tg'+(++_tg),
-  chev=function(y){return '<path d="M8.4 '+y+'l3.6-3 3.6 3" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>'},
-  G=[chev(13.5),chev(11.5)+chev(15.5),chev(9.6)+chev(12.8)+chev(16),'<path d="M12 7.6l4.2 4.4-4.2 6.2L7.8 12z" fill="#fff" opacity=".95"/><path d="M7.8 12h8.4" stroke="'+C[1]+'" stroke-width=".9"/>','<path d="M7.4 16.6l-1-6.4 3.6 3 2-4.8 2 4.8 3.6-3-1 6.4z" fill="#fff"/>'][n-1];
-  return '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+C[0]+'"/><stop offset="1" stop-color="'+C[1]+'"/></linearGradient></defs><path d="M12 1.8l8.4 3.2v6.3c0 5.2-3.5 9.2-8.4 11-4.9-1.8-8.4-5.8-8.4-11V5z" fill="url(#'+id+')" stroke="rgba(0,0,0,.35)" stroke-width=".8"/>'+G+'</svg>' }
+var TN=[["برونزي", "Bronze", "#e0925f", "#8a4a2a"], ["فضي", "Silver", "#eef1f7", "#8791a8"], ["ذهبي", "Gold", "#ffd84d", "#e08a00"], ["ألماسي", "Diamond", "#8fe3ff", "#1565d8"], ["متجر", "Merchant", "#e0b0ff", "#5a1fbf"]];
+function tierIc(n){ var C=TN[n-1], id='tg'+(++_tg), star='<polygon points="12,7.2 13.4,10.4 16.9,10.7 14.2,13 15,16.4 12,14.6 9,16.4 9.8,13 7.1,10.7 10.6,10.4" fill="#fff" fill-opacity=".92" stroke="rgba(0,0,0,.25)" stroke-width=".4"/>', body;
+  if(n===4) body='<polygon points="12,1.8 20.5,6.9 20.5,17.1 12,22.2 3.5,17.1 3.5,6.9" fill="#1565d8"/><polygon points="12,1.8 20.5,6.9 12,12 3.5,6.9" fill="#b6f0ff"/><polygon points="3.5,6.9 12,12 12,22.2 3.5,17.1" fill="#35a8f5"/><polygon points="20.5,6.9 20.5,17.1 12,22.2 12,12" fill="#0b4fb0"/>';
+  else body='<polygon points="12,1.5 21,6.75 21,17.25 12,22.5 3,17.25 3,6.75" fill="url(#'+id+')" stroke="rgba(0,0,0,.35)" stroke-width=".7"/><polygon points="12,3.6 19.2,7.8 19.2,16.2 12,20.4 4.8,16.2 4.8,7.8" fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".9"/>'+(n===5?'<path d="M7.4 16.2l-1-6.2 3.6 3 2-4.6 2 4.6 3.6-3-1 6.2z" fill="#fff"/>':star);
+  return '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+C[2]+'"/><stop offset="1" stop-color="'+C[3]+'"/></linearGradient></defs>'+body+'</svg>' }
 function tierBadge(){ var n=myTier(); return n?'<span class="tbg">'+tierIc(n)+'</span>':'' }
-function tierCard(){ var t=spentTotal(), n=tierOf(t), nx=TIERS[n], h='<div class="card tcard"><div class="tstrip">';
-  for(var i=1;i<=5;i++) h+='<span class="tl'+((i<=n||(i===5&&window.merch))?' on':'')+'">'+tierIc(i)+'</span>';
-  h+='</div>';
-  if(n<4) h+='<div class="tbar"><i style="width:'+Math.min(100,Math.round(t/nx*100))+'%"></i></div><small class="tnote">باقي '+money(nx-t)+' للمستوى '+(n+1)+'</small>';
-  else h+='<small class="tnote">وصلت لأعلى مستوى شراء ✨</small>';
-  return h+'<small class="tnote" style="color:#ffe6a6">المستوى 5: خصم خاص للمتاجر 🏪 — يُفعَّل من الإدارة فقط</small></div>' }
+function tierCard(){ var t=spentTotal(), n=tierOf(t), cur=window.merch?5:n, h='<div class="card tcard"><div class="tcur">'+(cur?'<span class="tbi">'+tierIc(cur)+'</span><b>'+TN[cur-1][0]+' / '+TN[cur-1][1]+'</b>':'<b>شريحتك الحالية: لا يوجد</b>')+'</div><small class="tnote" style="margin:6px 0 10px">للترقية إلى شريحة أعلى زد مشترياتك</small>';
+  for(var i=1;i<=5;i++){ var ok=i===5?!!window.merch:i<=n, nx=(i===n+1&&i<=4), req=i<5?TIERS[i-1]:0, pc=nx?Math.min(100,Math.round(t/req*100)):0;
+    h+='<div class="trow"><span class="tbi'+(ok||nx?'':' lk')+'">'+tierIc(i)+'</span><div class="tin"><b>'+TN[i-1][0]+' / '+TN[i-1][1]+'</b>'
+     +(i<5?'<small>المطلوب: '+money(req)+'</small>':'<small>خصم خاص للمتاجر — يُفعَّل من الإدارة فقط</small>')
+     +'<em class="'+(ok?'ok':'')+'">'+(ok?'✔':'🔒')+'</em>'
+     +(nx?'<div class="tbar"><i style="width:'+pc+'%"></i></div><small dir="ltr" style="text-align:center">'+pc+'% · باقي '+money(req-t)+'</small>':'')+'</div></div>' }
+  return h+'</div>' }
 function acctM(){
   var linked=!!(window.tgd&&window.tgd.id);
   var IC_CAM='<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
@@ -1760,7 +1761,7 @@ function decide(id,reject,note){
   var oref=db.collection('orders').doc(id); ldr(1);
   return db.runTransaction(function(t){return t.get(oref).then(function(s){var o=s.data();if(!o||o.status!=='pending')return;
     if(reject) t.update(db.collection('users').doc(o.uid),{balance:FV.increment(o.price)});
-    t.update(oref,{status:reject?'rejected':'accepted',lpw:'',note:note||''})})}).then(function(){return oref.get().then(function(sn){ if(sn.exists&&!sn.data().doneAt&&sn.data().status!=='pending') return oref.update({doneAt:FV.serverTimestamp()}) })}).then(function(){ if(!reject) pubLive(id) }).catch(function(){alert('فشلت العملية')}).then(function(){ldr(0)});
+    t.update(oref,{status:reject?'rejected':'accepted',lpw:'',note:note||''})})}).then(function(){return oref.get().then(function(sn){ if(sn.exists&&!sn.data().doneAt&&sn.data().status!=='pending') return oref.update({doneAt:FV.serverTimestamp()}) })}).catch(function(){alert('فشلت العملية')}).then(function(){ldr(0)});
 }
 // ===== بيانات الدفع: عدّلها هنا =====
 var TOPUP=[{name:"شام كاش",cur:["SYP","USD"],to:"4b1601bee9325e5f3844a2aeec2fcecf",qr:""+IMG.qr+""},{name:"سيريتل كاش",cur:["SYP"],to:"0995105177"}];
@@ -1871,7 +1872,7 @@ function invM(k,v,c){
 }
 $('nAdm').onclick=function(){ if(!isAdmin()) return; $('modal').classList.add('full'); setNav('nAdm'); adminM('hub') };
 function setNav(id){['nOrd','nBot','nHome','nTop','nAcc','nAdm'].forEach(function(i){var e=$(i);if(e)e.classList.toggle('on',i===id)})}
-function refO(){if(!$('modal').hidden){ var v=$('mbody').dataset.v; if(v==='orders')ordersM(); else if(v==='od'&&odCur)ordDetail(odCur.id,odCur.k) }}
+function refO(){ try{chip()}catch(e){}if(!$('modal').hidden){ var v=$('mbody').dataset.v; if(v==='orders')ordersM(); else if(v==='od'&&odCur)ordDetail(odCur.id,odCur.k) }}
 function bdg(st,map){var c=(st==='accepted'||st==='approved')?'ok':st==='rejected'?'no':'wt';return '<span class="badge '+c+'">'+(map[st]||"")+'</span>'}
 function ordersM(){
   var h='<h3>طلباتي</h3>', all=[];
@@ -3440,27 +3441,5 @@ html:root #modal.full,html:root #modal.full .mbox{background:var(--bg)!important
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
 </style>
 <noscript><div style="padding:24px;text-align:center;color:#f6f3ea;background:#06060a"><h1>AL3M STOR</h1><p>شحن جواهر فري فاير وشدات ببجي موبايل وعملات Blood Strike و Delta Force. الدفع عبر شام كاش وسيريتل كاش.</p><p>فعّل JavaScript لعرض المتجر.</p></div></noscript>
-<script>
-// ===== الإشعار الحي: طلبات منفّذة فعلياً بأسماء مخفية جزئياً =====
-function pubLive(id){ try{ var ref=db.collection('orders').doc(id);
-  ref.get().then(function(sn){ var o=sn.data(); if(!o||o.status!=='accepted'||o.live) return;
-    return db.collection('users').doc(o.uid).get().then(function(u){
-      var ch=Array.from(String((u.data()||{}).name||'').trim()), m=ch.length>2?ch[0]+'***'+ch[ch.length-1]:(ch[0]||'*')+'***';
-      var lr=db.collection('config').doc('live');
-      return lr.get().then(function(l){ var a=(l.exists&&l.data().list)||[]; a=[{n:m,g:o.game||'',p:o.pkg||'',t:Date.now()}].concat(a).slice(0,12); return lr.set({list:a}) }) })
-    .then(function(){ return ref.update({live:1}) }) }).catch(function(){}) }catch(e){} }
-(function(){
-  if(typeof db==='undefined'||!db) return;
-  var L=[], ix=0, el=document.createElement('div'); el.id='live'; el.innerHTML='<i></i><div><b></b><span></span></div>'; document.body.appendChild(el);
-  function ago(t){ var m=Math.floor((Date.now()-t)/6e4); if(m<1) return 'قبل أقل من دقيقة'; if(m===1) return 'قبل دقيقة'; if(m===2) return 'قبل دقيقتين'; if(m<=10) return 'قبل '+m+' دقائق'; if(m<60) return 'قبل '+m+' دقيقة';
-    var h=Math.floor(m/60); if(h===1) return 'قبل ساعة'; if(h===2) return 'قبل ساعتين'; if(h<=10) return 'قبل '+h+' ساعات'; return 'قبل '+h+' ساعة' }
-  function show(){ if(document.hidden||!$('modal').hidden) return;
-    var f=L.filter(function(x){ return x&&x.t&&Date.now()-x.t<864e5 }); if(!f.length) return;
-    var x=f[ix++%f.length]; el.querySelector('b').textContent='✅ تم تنفيذ طلب '+ago(x.t);
-    el.querySelector('span').textContent=x.n+(x.p?' · '+x.p:''); el.classList.add('on'); setTimeout(function(){ el.classList.remove('on') },5000) }
-  db.collection('config').doc('live').onSnapshot(function(s){ L=(s.exists&&s.data().list)||[] },function(){});
-  setTimeout(show,8000); setInterval(show,28000);
-})();
-</script>
 </body>
 </html>
