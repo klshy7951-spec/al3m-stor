@@ -682,7 +682,7 @@ html[data-theme=light] #boot .bsk::after{background:linear-gradient(100deg,trans
 .tbar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#16a34a,#4ade80)}
 .tnote{display:block;text-align:center;color:#cfcfe0;font:700 14px/1.6 'Tajawal',sans-serif;margin-top:6px;cursor:default}
 </style>
-<script src="images.js?v=3"></script>
+<script src="images.js?v=4"></script>
 <div id="ldr" hidden aria-hidden="true"><div class="orb"><i></i><i></i></div></div>
 <script>
 var bootNeed={load:1,auth:0,prices:0};
@@ -1166,7 +1166,7 @@ function isAdmin(){return !!(me && me.email && me.email.toLowerCase()===ADMIN_EM
 function showM(h){delete $('mbody').dataset.v;$('mbody').innerHTML=h;$('modal').hidden=false}
 function closeM(){$('modal').hidden=true;$('modal').classList.remove('full');$('modal').classList.remove('lock');warnBusy=false;setNav('nHome');if(tiv){clearInterval(tiv);tiv=null}}
 function setErr(t){$('err').textContent=t||""}
-function chip(){ bellBadge(); try{ var hb=$('balBtn'),ht=$('hdrTier'); if(!ht){ ht=document.createElement('span'); ht.id='hdrTier'; ht.className='tbg'; ht.style.cssText='width:30px;height:30px;margin:0 4px'; hb.parentNode.insertBefore(ht,hb) } var tn=me?myTier():0; ht.innerHTML=tn?tierIc(tn):''; ht.hidden=!tn }catch(e){} $('balBtn').textContent = me ? moneyShort(bal) : ((fbOK&&!authReady) ? "..." : "دخول"); var a=isAdmin(); document.body.classList.toggle('adm',a); $('nAdm').hidden=!a; var an=a?pend.length+pendT.length:0; $('nAdmN').textContent=an; $('nAdmN').hidden=!an; if(a) schedulePubBotCat(); }
+function chip(){ bellBadge(); try{ var bb=$('bellBtn'),ht=$('hdrTier'); if(!ht){ ht=document.createElement('button'); ht.id='hdrTier'; ht.type='button'; ht.setAttribute('aria-label','المستويات'); ht.style.cssText='width:34px;height:34px;padding:0;margin:0 2px;border:0;background:none;flex:none;cursor:pointer'; ht.onclick=function(){ showM('<div class="ac2"><h3>مستوياتي</h3>'+tierCard()+'</div><button class="mb" type="button" onclick="closeM()">حسنًا</button>') }; bb.parentNode.insertBefore(ht,bb) } var tn=myTier(); ht.innerHTML=me?tierIc(tn||1):''; ht.style.opacity=tn?1:.45; ht.hidden=!me }catch(e){} $('balBtn').textContent = me ? moneyShort(bal) : ((fbOK&&!authReady) ? "..." : "دخول"); var a=isAdmin(); document.body.classList.toggle('adm',a); $('nAdm').hidden=!a; var an=a?pend.length+pendT.length:0; $('nAdmN').textContent=an; $('nAdmN').hidden=!an; if(a) schedulePubBotCat(); }
 chip();
 var ST={pending:"قيد التنفيذ ⌛",accepted:"تم التنفيذ ✅",rejected:"مرفوض ❌ (أُرجع الرصيد)"}, STT={pending:"قيد المراجعة ⌛",approved:"تمت الإضافة ✅",rejected:"مرفوض ❌"};
 
@@ -1493,10 +1493,9 @@ function acctM(){
    +'<div class="fcnm" id="nmbox" hidden><input id="nmin" type="text" maxlength="20" value="'+esc(uname||'')+'" placeholder="الاسم الجديد" autocomplete="off"><button type="button" id="nmsave">حفظ</button></div>'
    +'<input type="file" id="avf" accept="image/*" hidden></div>'
    +'<div class="fcb"><div class="fcav">'+(avatar?'<img id="avimg" alt="" src="'+avatar+'">':'<div id="avimg" class="fcph">👤</div>')+'</div>'
-   +'<div class="fcn">'+esc(uname||'حسابي')+tierBadge()+'</div>'
+   +'<div class="fcn">'+esc(uname||'حسابي')+'</div>'
    +(cid?'<div class="fcu"><span>UID: <b id="mycid">'+esc(cid)+'</b></span><button class="fcc" id="cpyid" type="button" aria-label="نسخ">'+IC_CPY+'</button></div>':'')
    +'</div></div><p class="msg" id="avmsg" style="text-align:center"></p>';
-  h+=tierCard();
   h+='<div class="card"><div class="botc"><div class="boti">🤖</div><div class="bott"><b>بوت تيليغرام</b><span class="st '+(linked?'on':'off')+'">'+(linked?'✅ مرتبط':'غير مرتبط')+'</span></div></div>'
    +'<button class="bbtn" id="tgl" type="button">'+(linked?'🤖 إدارة ربط البوت':'🤖 ربط البوت')+'</button></div>';
   h+='<div class="gr2"><button class="mb g" id="faq" type="button">❓ الأسئلة والشروط</button><button class="mb g" id="lo" type="button">تسجيل الخروج</button></div>';
@@ -2570,7 +2569,7 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
       commit(); return }
     if(a==='savesoc'){ var S2=ED.social[+p[1]]; S2.name=val('name')||S2.name; S2.en=val('en')||S2.en; commit(); return }
   }
-  function openEditor(){ ED=cl(CT||seed()); ED.gx=ED.gx||{}; ED.extra=ED.extra||[]; view=[['home']]; LASTJ=JSON.stringify(ED); R() }
+  function openEditor(){ ED=cl(CT||seed()); if(!(ED.cats||[]).some(function(k){return k.en==='FREE STUFF'})) ED.cats.push(walk(cl(FREE_CAT),tok)); ED.gx=ED.gx||{}; ED.extra=ED.extra||[]; view=[['home']]; LASTJ=JSON.stringify(ED); R() }
   var mb=D('mbody');
   mb.addEventListener('click',function(e){
     var k=e.target.closest&&e.target.closest('[data-k="sed"]');
