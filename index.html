@@ -10,7 +10,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#06060a">
+<meta name="theme-color" content="#0d1117">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -649,6 +649,7 @@ html[data-theme=light] .ford{background:#fff;box-shadow:0 0 0 1px #d9d4c6;color:
 html[data-theme=light] .ford b{color:#17171f}html[data-theme=light] .ford small{color:#4a4a5a}
 html[data-theme=light] .ffmenu .ffcur{color:#17171f}
 </style>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 </head>
 <body>
 <style id="skel">
@@ -4052,5 +4053,49 @@ window.__al3mItemExtras=itemExtras;
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 })();
 </script>
+<style id="pro-skin">
+:root{--bg:#0d1117;--panel:#151b23;--panel2:#1c232d;--line:#28303b;--ink:#e8ebf0;--muted:#8f99a8;--gold:#c9a45c;--gold-l:#e2c98c;--gold-d:#8f7138;--ruby:#c0283d;--ruby-d:#6b1220;--goldtext:linear-gradient(#e2c98c,#e2c98c)}
+html[data-theme=light]{--bg:#f4f6f8;--panel:#fff;--panel2:#eef1f5;--line:#dde2e8;--ink:#141922;--muted:#5c6675;--gold:#8f6a1f;--gold-l:#6f5217;--goldtext:linear-gradient(#8f6a1f,#8f6a1f);--pill:#eef1f5}
+html:root:root,html:root:root body{font-family:'IBM Plex Sans Arabic','Tajawal',Tahoma,sans-serif}
+html:root:root body :not(.wm):not(.wm *):not(svg *):not(code){font-family:'IBM Plex Sans Arabic','Tajawal',Tahoma,sans-serif}
+html:root:root body::before{background:linear-gradient(180deg,var(--panel) 0,var(--bg) 340px),var(--bg)}
+html:root:root .top{background:color-mix(in srgb,var(--bg) 90%,transparent);border-bottom:1px solid var(--line);box-shadow:none}
+html:root:root .brand svg{filter:none}
+html:root:root .chat,html:root:root .back,html:root:root .tab,html:root:root .notice,html:root:root .tile{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+html:root:root .tab,html:root:root .tile,html:root:root .notice{border-radius:10px}
+html:root:root .tab[aria-pressed="true"]{background:var(--gold);color:var(--bg);box-shadow:none}
+html:root:root .chat:active,html:root:root .back:active,html:root:root .tab:active,html:root:root .item:active,html:root:root .tile:active{transform:none;opacity:.85}
+html:root:root .art{border-radius:14px;background:var(--panel2);box-shadow:0 0 0 1px var(--line);transform:none!important;transition:box-shadow .2s}
+html:root:root .art::before{display:none}
+html:root:root .art::after{background:linear-gradient(180deg,transparent 65%,rgba(0,0,0,.22))}
+html:root:root .art img.lg{box-shadow:0 0 0 1px var(--line)}
+html:root:root .card:hover .art{box-shadow:0 0 0 1px var(--gold)}
+html:root:root .card:active .art{filter:none}
+html:root:root .card b{margin-top:10px;padding:0;background:none;box-shadow:none;border-radius:0;font-size:15px;font-weight:600;line-height:1.4;color:var(--ink)}
+html:root:root .cards{gap:20px 14px}
+html:root:root .grid{gap:12px}
+html:root:root .item{background:var(--panel);border-radius:12px;padding:14px 8px;box-shadow:0 0 0 1px var(--line)}
+html:root:root .item:hover{box-shadow:0 0 0 1px var(--gold)}
+html:root:root .item[aria-pressed="true"]{background:var(--panel2);box-shadow:0 0 0 1.5px var(--gold)}
+html:root:root .item span{background:none;-webkit-background-clip:border-box;background-clip:border-box;-webkit-text-fill-color:currentColor;color:var(--gold);font-weight:700}
+html:root:root .banner h2,html:root:root .gtitle h2,html:root:root h3,html:root:root .hero h2{background:none;-webkit-background-clip:border-box;background-clip:border-box;-webkit-text-fill-color:currentColor;color:var(--ink);font-weight:700}
+html:root:root .goldtxt{background:none;-webkit-background-clip:border-box;background-clip:border-box;-webkit-text-fill-color:currentColor;color:var(--gold)}
+html:root:root .gtitle h2,html:root:root .hero h2,html:root:root .banner h2{font-size:24px}
+html:root:root h3{font-size:19px}
+html:root:root .banner{border-radius:14px;background:var(--panel);box-shadow:0 0 0 1px var(--line)}
+html:root:root .banner::after{display:none}
+html:root:root .banner svg{animation:none;filter:none}
+html:root:root form,html:root:root .mbox{background:var(--panel);border-radius:14px;box-shadow:0 0 0 1px var(--line),0 20px 48px -24px rgba(0,0,0,.55)}
+html:root:root input[type=text],html:root:root input[type=password],html:root:root .search{background:var(--bg);border-radius:10px;box-shadow:0 0 0 1px var(--line)}
+html:root:root input[type=text]:focus,html:root:root input[type=password]:focus,html:root:root .search:focus-within{box-shadow:0 0 0 1.5px var(--gold)}
+html:root:root .cta,html:root:root .wa{box-shadow:none;border-radius:12px}
+html:root:root .nav{background:var(--panel);border-top:1px solid var(--line);box-shadow:none}
+html:root:root .nav button{color:var(--muted);font-weight:600}
+html:root:root .nav button svg,html:root:root .nav button.on svg,html:root:root #nBot svg,html:root:root #nBot.on svg{fill:currentColor}
+html:root:root .nav button.on{color:var(--gold)}
+html:root:root .nav button.on i{background:color-mix(in srgb,var(--gold) 14%,transparent);transform:none}
+html:root:root .nav button.on span{transform:none}
+html:root:root ::selection{background:var(--gold);color:var(--bg)}
+</style>
 </body>
 </html>
