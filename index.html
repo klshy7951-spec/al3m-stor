@@ -880,7 +880,7 @@ var GAMES = [
     {name:"👑 Prime", fc:true, items:
       [["Prime (1 Month)",130.224],["Prime (3 Months)",390.671],["Prime (6 Months)",780.101],["Prime Plus (1 Month)",1300.996],["Prime (12 Months)",1561.443],["Prime Plus (3 Months)",3902.988],["Prime Plus (6 Months)",7805.977],["Prime Plus (12 Months)",15611.953]]},
     {name:"🎁 باس وحزم", fc:true, items:
-      [["حزمة الشراء الأول",130.224],["Weekly Deal Pack 1",130.224],["حزمة مواد أسلحة نارية",390.671],["Weekly Deal Pack 2",390.671],["Weekly Mythic Emblem Value Pack",390.671],["حزمة الشعار الأسطوري",651.118],["Elite Pass LV1-50",780.101],["Elite Pass LV1-100",1561.443],["Elite Pass Plus LV1-100",3902.988]]}
+      [["حزمة الشراء الأول",130.224,1],["Weekly Deal Pack 1",130.224],["حزمة مواد أسلحة نارية",390.671],["Weekly Deal Pack 2",390.671],["Weekly Mythic Emblem Value Pack",390.671],["حزمة الشعار الأسطوري",651.118],["Elite Pass LV1-50",780.101],["Elite Pass LV1-100",1561.443],["Elite Pass Plus LV1-100",3902.988]]}
   ]},
   {name:"Blood Strike", en:"BLOOD STRIKE", em:"<img loading='lazy' decoding='async' src='"+IMG.bs+"' alt='Blood Strike'>", cats:[
     {name:"💰 Golds", fc:true, items:
@@ -985,6 +985,7 @@ function fcApply(d){
   if(+d.rate>0) BASE=+d.rate;
   if(d.profit!=null && !isNaN(+d.profit)) PROFIT=+d.profit;
   GAMES.forEach(function(G,gi){ (G.cats||[]).forEach(function(C,ci){ (C.items||[]).forEach(function(it,ix){
+    if(it[2]) return;
     var k=gi+'_'+ci+'_'+ix, hit=null;
     if(FCMAP[k]!=null) hit=byId[FCMAP[k]];
     else if(C.fc){
