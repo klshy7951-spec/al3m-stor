@@ -970,7 +970,12 @@ function availRefresh(){
 // ===== مزامنة الأسعار مع FAST CARD عبر الـ Worker (تلقائي كل 5 دقائق) =====
 // سعر البيع = سعر FastCard بالدولار × (سعر الصرف + الربح) — الربح 5 ل.س لكل 1$
 var FC_BRIDGE = "https://al3m-fastcard1.klshy7951.workers.dev";   // ← ضع رابط الـ Worker الجديد هنا
-var FCOFF = {}, FCMAP = {};   // FCMAP: ربط يدوي اختياري  {"1_1_0": 365}  (مفتاح الباقة : رقم المنتج في FastCard)
+var FCOFF = {}, FCMAP = {
+  // Blood Strike (العرب) — جولدات
+  "2_0_0":8093,"2_0_1":8094,"2_0_2":8095,"2_0_3":8096,"2_0_4":8097,"2_0_5":8098,"2_0_6":8099,
+  // Blood Strike (العرب) — باصات وحزم
+  "2_1_0":8102,"2_1_1":8105,"2_1_2":8103,"2_1_3":8106,"2_1_4":8107,"2_1_5":8109,"2_1_6":8108,"2_1_7":8110
+};   // FCMAP: ربط يدوي اختياري  {"1_1_0": 365}  (مفتاح الباقة : رقم المنتج في FastCard)
 function fcNorm(s){ return String(s).toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]+/g,'') }
 function fcApply(d){
   var byId={}, byName={}, off={}, miss=[], n=0;
@@ -983,6 +988,7 @@ function fcApply(d){
     else if(C.fc){
       var c=byName[fcNorm(it[0])];
       if(c&&c.length){ var same=c.every(function(x){ return x[3]===c[0][3] }); if(c.length===1||same) hit=c[0] }
+      if(!hit){ var st0=Number(it[1])||0, cd=d.items.filter(function(p){ return st0>0&&p[3]>0&&Math.abs(p[3]*148-st0)<=st0*0.0005 }); if(cd.length===1) hit=cd[0] }   // مطابقة بالسعر القديم (148)
     }
     if(!(C.fc||FCMAP[k]!=null)) return;
     var st=Number(it[1])||0;
