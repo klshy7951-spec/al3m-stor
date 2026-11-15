@@ -980,7 +980,7 @@ var FCOFF = {}, FCMAP = {
 };   // FCMAP: ربط يدوي اختياري  {"1_1_0": 365}  (مفتاح الباقة : رقم المنتج في FastCard)
 function fcNorm(s){ return String(s).toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]+/g,'') }
 function fcApply(d){
-  var byId={}, byName={}, off={}, miss=[], n=0;
+  var byId={}, byName={}, off={}, miss=[], n=0, ids={};
   d.items.forEach(function(p){ byId[p[0]]=p; var nm=fcNorm(p[1]); (byName[nm]=byName[nm]||[]).push(p) });
   if(+d.rate>0) BASE=+d.rate;
   if(d.profit!=null && !isNaN(+d.profit)) PROFIT=+d.profit;
@@ -996,10 +996,10 @@ function fcApply(d){
     if(!(C.fc||FCMAP[k]!=null)) return;
     var st=Number(it[1])||0;
     if(!hit||!(hit[3]>0)||(st>0&&(hit[3]*BASE>st*3||hit[3]*BASE<st/3))){ miss.push(G.name+' / '+it[0]); delete it.fcp; return }
-    it.fcp=hit[3]; n++;
+    it.fcp=hit[3]; n++; ids[k]=hit[0];
     if(!hit[4]) off[k]=1;
   }) }) });
-  FCOFF=off; window.FC_STAT={ok:n,miss:miss,t:d.t};
+  window.FCIDS=ids; FCOFF=off; window.FC_STAT={ok:n,miss:miss,t:d.t};
   try{ if(pick&&(isOff(pick.g+'')||isOff(pick.g+'_'+pick.c)||isOff(pick.k)||(curP(pick)!==pick.p))) pick=null }catch(e){}
   try{ availRefresh() }catch(e){}
   try{ schedulePubBotCat() }catch(e){}
@@ -1531,9 +1531,11 @@ function pubBotTree(){
   db.collection('config').doc('botTree').set({json:js,at:FV.serverTimestamp()}).catch(function(){ botTreeLast='' });
 }
 setInterval(function(){ if(fbOK) schedulePubBotCat() },20000);
+var fcMapLast='';
+function pubFcMap(){ try{ if(!window.FCIDS||!Object.keys(FCIDS).length) return; var js=JSON.stringify(FCIDS); if(js===fcMapLast) return; fcMapLast=js; db.collection('config').doc('fcMap').set({json:js,at:FV.serverTimestamp()}).catch(function(){ fcMapLast='' }) }catch(e){} }
 function pubBotCat(){
   if(!fbOK||!me||!isAdmin()||!_prOK||!_ctOK||!GAMES.length) return;
-  pubBotTree();
+  pubBotTree(); pubFcMap();
   var js; try{ js=JSON.stringify(botCatBuild()) }catch(e){ return }
   if(js===botCatLast) return; botCatLast=js;
   db.collection('config').doc('botCatalog').set({json:js,at:FV.serverTimestamp()}).catch(function(){ botCatLast='' });
