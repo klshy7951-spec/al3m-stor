@@ -1090,6 +1090,8 @@ function fcInject(d){
 }
 var _arFC=availRefresh;
 availRefresh=function(){ try{ if(window.FCD) fcInject() }catch(e){} _arFC() };
+function fcKick(){   // يبلّغ الـ Worker فور الطلب ليشحن مباشرة
+  try{ if(!FC_BRIDGE||/PUT-YOUR/.test(FC_BRIDGE)) return; setTimeout(function(){ fetch(FC_BRIDGE.replace(/\/+$/,'')+'/kick',{mode:'no-cors',keepalive:true}).catch(function(){}) },1200) }catch(e){} }
 function fcSync(){
   if(!FC_BRIDGE||/PUT-YOUR/.test(FC_BRIDGE)) return;
   fetch(FC_BRIDGE.replace(/\/+$/,'')+'/prices',{cache:'no-store'}).then(function(r){ return r.json() }).then(function(d){ if(d&&d.ok&&Array.isArray(d.items)) fcApply(d) }).catch(function(){});
@@ -1337,6 +1339,7 @@ var ST={pending:"قيد التنفيذ ⌛",accepted:"تم التنفيذ ✅",r
 // ===== الإشعارات على جوالك (تطبيق ntfy) =====
 var NTFY_TOPIC = "al3m-9maus69uzivmzd099b";   // اسم القناة السري: اشترك فيه بتطبيق ntfy
 function pingAdmin(title, msg, tag){
+  try{ if(/^🛒/.test(title)) fcKick() }catch(e){}
   try{
     var u = "https://ntfy.sh/" + NTFY_TOPIC + "/publish?title=" + encodeURIComponent(title)
           + "&message=" + encodeURIComponent(msg) + "&priority=high&tags=" + encodeURIComponent(tag||"bell")
