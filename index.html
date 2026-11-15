@@ -1054,26 +1054,25 @@ function fcInject(d){
     if(!list.length) return;
     var items=list.map(function(p){ var it=[p[1],Math.round(p[3]*BASE)||1]; it.fcp=p[3]; it._id=p[0]; return it });
     var C={name:c.n,items:items,_fc:1}, br=null;
+    if(!np0){ C.idMode='none' } else { C.idMode='txt'; C.idLabel=list[0][6]||'ID' }
     for(var q=0;q<FC_BR.length;q++) if(FC_BR[q][0].test(c.n)){ br=FC_BR[q]; break }
     var name,sec;
     if(br&&typeof br[1]==='number'){
       var G=GAMES[br[1]];
-      if(np0===1&&G&&G.cats){ G.cats.push(C); return }
-      name=(G?G.name:'')+' — أكواد'; sec='games';
+      if(G&&G.cats){ if(np0&&(G.idMode||'num')==='num'){ delete C.idMode; delete C.idLabel } G.cats.push(C); return }
+      name=c.n; sec='games';
     } else if(br){ name=br[1]; sec=br[2] }
     else { var g=fcGrp(c.n); if(g[0]==='tools'&&!FC_TOOLS) return; name=c.n; sec=(g[0]==='tools'?'games':g[0]) }
-    var key=name+'|'+np0, e=nw[key];
-    if(!e){ e=nw[key]={name:name,sec:sec,np:np0,label:list[0][6]||'ID',cats:[],min:c.min}; nwo.push(e) }
+    var e=nw[name];
+    if(!e){ e=nw[name]={name:name,sec:sec,cats:[],min:c.min}; nwo.push(e) }
     e.cats.push(C);
   });
-  var both={}; nwo.forEach(function(e){ both[e.name]=(both[e.name]||0)+1 });
   var secs={};
   nwo.forEach(function(e){
-    var nm=both[e.name]>1?(e.name+(e.np?' (بالـ ID)':' (أكواد)')):e.name;
-    var multi=e.cats.length===1&&e.cats[0].name===e.name;
-    var gi=GAMES.length;
-    var em={games:'🎮',cards:'💳',subs:'📺',social:'💬',bal:'📞'}[e.sec]||'🎮';
-    GAMES.push({name:nm,en:nm,em:'<b style="font-size:50px;line-height:1">'+em+'</b>',_fc:1,idMode:e.np?'txt':'none',idLabel:e.np?e.label:'',cats:e.cats});
+    var gi=GAMES.length, em={games:'🎮',cards:'💳',subs:'📺',social:'💬',bal:'📞'}[e.sec]||'🎮';
+    var allNone=e.cats.every(function(C){return C.idMode==='none'}), lab='';
+    e.cats.forEach(function(C){ if(!lab&&C.idLabel) lab=C.idLabel });
+    GAMES.push({name:e.name,en:e.name,em:'<b style="font-size:50px;line-height:1">'+em+'</b>',_fc:1,idMode:allNone?'none':'txt',idLabel:lab,cats:e.cats});
     (secs[e.sec]=secs[e.sec]||[]).push(gi);
   });
   ['games','cards','subs','social','bal'].forEach(function(k){
@@ -1238,12 +1237,14 @@ function draw(){
     $('items').appendChild(b);
   });
 }
+function catMode(G,C){ return (C&&C.idMode)||(G&&G.idMode)||'num' }
+function catLabel(G,C){ return (C&&C.idLabel)||(G&&G.idLabel)||'' }
 function isLinkPick(){ return !!(pick && /ربط/.test(pick.n)) }
 function syncFields(){
-  var l=isLinkPick(), G=GAMES[g]||{}, m=G.idMode||'num';
+  var l=isLinkPick(), G=GAMES[g]||{}, CC=pick&&GAMES[pick.g]?GAMES[pick.g].cats[pick.c]:(G.cats||[])[c], m=catMode(pick&&GAMES[pick.g]?GAMES[pick.g]:G,CC);
   $('linkBox').hidden=!l; $('pidBox').hidden=l||m==='none';
   var lb=$('pidBox').querySelector('label'), inp=$('pid');
-  lb.textContent = m==='txt' ? (G.idLabel||'المعلومة المطلوبة') : 'ID اللاعب (رقم حسابك في اللعبة)';
+  lb.textContent = m==='txt' ? (catLabel(pick&&GAMES[pick.g]?GAMES[pick.g]:G,CC)||'المعلومة المطلوبة') : 'ID اللاعب (رقم حسابك في اللعبة)';
   inp.setAttribute('inputmode', m==='txt'?'text':'numeric'); inp.placeholder = m==='txt' ? 'اكتبها هنا' : 'اكتب الـ ID هنا';
 }
 function sum(){
@@ -1579,7 +1580,7 @@ function botCatBuild(){
     if(!G||!G.cats||G._fc||isOff(String(gi))) return;
     var cats=[];
     G.cats.forEach(function(C,ci){
-      if(isOff(gi+'_'+ci)) return;
+      if(C._fc||isOff(gi+'_'+ci)) return;
       var items=[];
       catItems(gi,ci).forEach(function(it,ix){
         if(it[2]) return;
@@ -2132,9 +2133,9 @@ $('wa').addEventListener('click',function(e){
     if(lpw.length<4){setErr("اكتب كلمة سر الحساب");$('lpw').focus();return}
     if(lwa.length<8||lwa.length>15){setErr("اكتب رقم واتساب صحيح للتواصل معك");$('lwa').focus();return}
   } else {
-    var idm=(GAMES[pick.g]&&GAMES[pick.g].idMode)||'num';
+    var idm=catMode(GAMES[pick.g],GAMES[pick.g].cats[pick.c]);
     if(idm==='none'){ pid='-' }
-    else if(idm==='txt'){ pid=$('pid').value.trim(); if(pid.length<3||pid.length>120){setErr("اكتب: "+(GAMES[pick.g].idLabel||'المعلومة المطلوبة')+" قبل الطلب");$('pid').focus();return} }
+    else if(idm==='txt'){ pid=$('pid').value.trim(); if(pid.length<3||pid.length>120){setErr("اكتب: "+(catLabel(GAMES[pick.g],GAMES[pick.g].cats[pick.c])||'المعلومة المطلوبة')+" قبل الطلب");$('pid').focus();return} }
     else {
     pid=$('pid').value.trim();
     if(!/^\d{6,14}$/.test(pid)){setErr("اكتب ID اللاعب (أرقام فقط) قبل الطلب");$('pid').focus();return}
@@ -3921,9 +3922,9 @@ function cartM(from){
   try{ last=localStorage.getItem('al3m_pid')||'' }catch(e){}
   if(!rows.length){ h+='<p class="msg" style="color:var(--muted);font-size:17px;line-height:1.8">السلة فاضية. من صفحة أي لعبة اختر باقة واضغط «أضف للسلة»، وبتقدر تطلب كذا باقة بطلب واحد.</p>'; xShow(h,'cart',from); return }
   rows.forEach(function(w){
-    var r=w.r, x=w.x, p=dPrice(r.price), m=idMode(r.G); total+=p;
+    var r=w.r, x=w.x, p=dPrice(r.price), m=catMode(r.G,r.C); total+=p;
     h+='<div class="ord xci"><b>'+esc(clean(r.G.name))+' — '+esc(r.name)+'</b><small>'+esc(clean(r.C.name))+'</small><div class="pr">'+esc(money(p))+(offerOf(r.k)?' <s class="ofo">'+esc(money(dPrice(r.base)))+'</s>':'')+'</div>'
-      +(m==='none'?'':'<input class="xpid" data-u="'+esc(x.u)+'" type="text" inputmode="'+(m==='txt'?'text':'numeric')+'" autocomplete="off" placeholder="'+esc(m==='txt'?(r.G.idLabel||'المعلومة المطلوبة'):'ID اللاعب')+'" value="'+esc(x.pid||(m==='num'?last:''))+'">')
+      +(m==='none'?'':'<input class="xpid" data-u="'+esc(x.u)+'" type="text" inputmode="'+(m==='txt'?'text':'numeric')+'" autocomplete="off" placeholder="'+esc(m==='txt'?(catLabel(r.G,r.C)||'المعلومة المطلوبة'):'ID اللاعب')+'" value="'+esc(x.pid||(m==='num'?last:''))+'">')
       +'<button class="mb g xrm" type="button" data-u="'+esc(x.u)+'">🗑️ حذف من السلة</button></div>';
   });
   h+='<div class="sum xsum"><div>'+rows.length+' باقة · رصيدك '+(me?esc(money(bal)):'—')+'</div><strong>'+esc(money(total))+'</strong></div><p class="err xerr" id="xerr" role="alert"></p>'
@@ -3945,11 +3946,11 @@ function cartGo(from){
   var list=[], total=0, bad=null;
   rows.forEach(function(w){
     if(bad) return;
-    var r=w.r, m=idMode(r.G), pid='';
+    var r=w.r, m=catMode(r.G,r.C), pid='';
     if(r.off){ bad='«'+r.name+'» غير متوفرة حالياً، احذفها من السلة'; return }
     var inp=document.querySelector('.xpid[data-u="'+w.x.u+'"]'), v=inp?inp.value.trim():'';
     if(m==='none') pid='-';
-    else if(m==='txt'){ if(v.length<3||v.length>120){ bad='اكتب '+(r.G.idLabel||'المعلومة المطلوبة')+' لـ «'+r.name+'»'; return } pid=v }
+    else if(m==='txt'){ if(v.length<3||v.length>120){ bad='اكتب '+(catLabel(r.G,r.C)||'المعلومة المطلوبة')+' لـ «'+r.name+'»'; return } pid=v }
     else { if(!/^\d{6,14}$/.test(v)){ bad='اكتب ID صحيح (أرقام فقط) لـ «'+r.name+'»'; return } pid=v }
     var p=dPrice(r.price); total+=p;
     list.push({k:r.k,pid:pid,p:p,game:clean(r.G.name),cat:clean(r.C.name),pkg:clean(r.name)});
