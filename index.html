@@ -1021,13 +1021,25 @@ function fcGrp(n){
   if(/tool|unlock|frp|box|dongle|octoplus|auth|activation|schematics|imei|xiaomisungwei|icloud|mdm|cpid|ufi|gsm|cert|flash|miracle|pandora|medusa|sigma|setool|infinity|nokia|moto|oppo|realme|ايكلاود|شاومي|سيريلات|فحص|ازالة|الغاء|حذف|ادواة|borneo|orion|pragmafix|dzkj|jcid|hde|dft|eft|evo|fenix|griffin|nck|qcdmapower|rft|rtc|s-tool|sam|srs|tera|tfm|tr tools|uft|umt|yemen|zkey|zxw|repair|mobilesea|ameer|act pro|anony|apizu|avengers|bmtunlocker|cf-|cheetah|click|decoder|dragon|f-key|hua|hunter|laelo|muslim|nooox|panda|phoenix|rd |unlockt|thunder|tira|tmb|fenris|samsung unlocker|samtool|samkey|sam-|fd tool|fast unlocker|general unlocker|global unlocker|golden unlocker|ultra unlock|key-tool|credit |furious gold|multi pro|private unlock|hua dongle|e-gsm tool|rd power|ga pro|ghost auth|frp boss|flash repair|best/i.test(n)) return ['tools','أدوات وخدمات الجوال','PHONE TOOLS','🔧'];
   return ['games','ألعاب وخدمات','GAMES & MORE','🎮'];
 }
-var FCINJ=null;
+var FC_TOOLS=false;   // غيّرها لـ true إذا بدك أقسام أدوات الجوال (فك قفل، سوفتوير...) تظهر بالموقع
+var FC_BR=[
+ [/فري فاير|free ?fire/i,0],[/ببجي|pubg/i,1],[/blood ?strike|بلود/i,2],[/delta/i,3],
+ [/mobile legend/i,'Mobile Legends','games'],[/valorant/i,'Valorant','games'],[/genshen|genshin/i,'Genshin Impact','games'],
+ [/^itunes/i,'iTunes','cards'],[/^steam/i,'Steam','cards'],[/^playstation/i,'PlayStation','cards'],[/^xbox/i,'Xbox','cards'],[/^roblox/i,'Roblox','cards'],[/^razer/i,'Razer Gold','cards'],
+ [/vpn/i,'VPN','subs'],[/player|\btv\b|^tv|iptv|ip tv/i,'IPTV وبلايرات','subs'],
+ [/^مزود/,'شحن رصيد (مزودين)','bal']
+];
+var FC_SEC={games:['الألعاب','GAMES','🎮'],cards:['بطاقات الألعاب والمتاجر','GIFT CARDS','💳'],subs:['اشتراكات وتطبيقات','SUBSCRIPTIONS','📺'],social:['تواصل وسوشال ميديا','SOCIAL APPS','💬'],bal:['رصيد واتصالات','TOP UP','📞']};
+var FCINJ=null, FCN=0;
 function fcInject(d){
   d=d||window.FCD; if(!d||!d.items) return;
   window.FCD=d;
-  if(FCINJ===d && GAMES.some(function(G){return G._fc})) return;
-  for(var i=GAMES.length-1;i>=0;i--) if(GAMES[i]._fc) GAMES.splice(i,1);
-  for(var j=CATS.length-1;j>=0;j--) if(CATS[j].fcSec) CATS.splice(j,1);
+  if(FCINJ===d&&GAMES.filter(function(G){return G._fc}).length===FCN) return;
+  var i,j;
+  for(i=GAMES.length-1;i>=0;i--) if(GAMES[i]._fc) GAMES.splice(i,1);
+  GAMES.forEach(function(G){ if(G.cats) for(var j=G.cats.length-1;j>=0;j--) if(G.cats[j]._fc) G.cats.splice(j,1) });
+  for(j=CATS.length-1;j>=0;j--) if(CATS[j].fcSec) CATS.splice(j,1);
+  CATS.forEach(function(K){ if(K.games) K.games=K.games.filter(function(x){ return x<GAMES.length }) });
   var cats={}, order=[];
   d.items.forEach(function(p){
     if(p[5]>1||FC_EXCL[p[2]]) return;
@@ -1035,19 +1047,45 @@ function fcInject(d){
     if(p[0]<c.min) c.min=p[0]; c.it.push(p);
   });
   order.sort(function(a,b){ return a.min-b.min });
-  var secs={};
+  var nw={}, nwo=[];
   order.forEach(function(c){
     var z=c.it.filter(function(p){return p[5]===0}).length, np0=(z*2>c.it.length)?0:1;
     var list=c.it.filter(function(p){return p[5]===np0}).sort(function(a,b){return a[0]-b[0]});
     if(!list.length) return;
     var items=list.map(function(p){ var it=[p[1],Math.round(p[3]*BASE)||1]; it.fcp=p[3]; it._id=p[0]; return it });
-    var g=fcGrp(c.n), gi=GAMES.length;
-    GAMES.push({name:c.n,en:c.n,em:'<b style="font-size:50px;line-height:1">'+g[3]+'</b>',_fc:1,idMode:np0?'txt':'none',idLabel:np0?(list[0][6]||'ID'):'',cats:[{name:'الباقات',items:items}]});
-    (secs[g[0]]=secs[g[0]]||{g:g,list:[]}).list.push(gi);
+    var C={name:c.n,items:items,_fc:1}, br=null;
+    for(var q=0;q<FC_BR.length;q++) if(FC_BR[q][0].test(c.n)){ br=FC_BR[q]; break }
+    var name,sec;
+    if(br&&typeof br[1]==='number'){
+      var G=GAMES[br[1]];
+      if(np0===1&&G&&G.cats){ G.cats.push(C); return }
+      name=(G?G.name:'')+' — أكواد'; sec='games';
+    } else if(br){ name=br[1]; sec=br[2] }
+    else { var g=fcGrp(c.n); if(g[0]==='tools'&&!FC_TOOLS) return; name=c.n; sec=(g[0]==='tools'?'games':g[0]) }
+    var key=name+'|'+np0, e=nw[key];
+    if(!e){ e=nw[key]={name:name,sec:sec,np:np0,label:list[0][6]||'ID',cats:[],min:c.min}; nwo.push(e) }
+    e.cats.push(C);
   });
-  ['games','cards','subs','social','bal','tools'].forEach(function(k){ var s=secs[k]; if(!s) return;
-    CATS.push({name:s.g[1],en:s.g[2],fcSec:1,games:s.list,em:'<b style="font-size:56px;line-height:1">'+s.g[3]+'</b>'}) });
-  FCINJ=d;
+  var both={}; nwo.forEach(function(e){ both[e.name]=(both[e.name]||0)+1 });
+  var secs={};
+  nwo.forEach(function(e){
+    var nm=both[e.name]>1?(e.name+(e.np?' (بالـ ID)':' (أكواد)')):e.name;
+    var multi=e.cats.length===1&&e.cats[0].name===e.name;
+    var gi=GAMES.length;
+    var em={games:'🎮',cards:'💳',subs:'📺',social:'💬',bal:'📞'}[e.sec]||'🎮';
+    GAMES.push({name:nm,en:nm,em:'<b style="font-size:50px;line-height:1">'+em+'</b>',_fc:1,idMode:e.np?'txt':'none',idLabel:e.np?e.label:'',cats:e.cats});
+    (secs[e.sec]=secs[e.sec]||[]).push(gi);
+  });
+  ['games','cards','subs','social','bal'].forEach(function(k){
+    var list=secs[k]; if(!list) return;
+    if(k==='games'){
+      var K=null; CATS.forEach(function(x){ if(!K&&x.en==='GAMES'&&!x.fcSec) K=x });
+      if(K){ K.games=(K.games||[]).concat(list); return }
+    }
+    var S=FC_SEC[k];
+    CATS.push({name:S[0],en:S[1],fcSec:1,games:list,em:'<b style="font-size:56px;line-height:1">'+S[2]+'</b>'});
+  });
+  FCINJ=d; FCN=GAMES.filter(function(G){return G._fc}).length;
 }
 var _arFC=availRefresh;
 availRefresh=function(){ try{ if(window.FCD) fcInject() }catch(e){} _arFC() };
