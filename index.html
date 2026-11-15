@@ -982,6 +982,7 @@ var FCOFF = {}, FCMAP = {
 };   // FCMAP: ربط يدوي اختياري  {"1_1_0": 365}  (مفتاح الباقة : رقم المنتج في FastCard)
 function fcNorm(s){ return String(s).toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]+/g,'') }
 function fcApply(d){
+  try{ fcInject(d) }catch(e){}
   var byId={}, byName={}, off={}, miss=[], n=0, ids={};
   d.items.forEach(function(p){ byId[p[0]]=p; var nm=fcNorm(p[1]); (byName[nm]=byName[nm]||[]).push(p) });
   if(+d.rate>0) BASE=+d.rate;
@@ -989,6 +990,7 @@ function fcApply(d){
   GAMES.forEach(function(G,gi){ (G.cats||[]).forEach(function(C,ci){ (C.items||[]).forEach(function(it,ix){
     if(it[2]) return;
     var k=gi+'_'+ci+'_'+ix, hit=null;
+    if(it._id){ hit=byId[it._id]; if(!hit||!(hit[3]>0)){ delete it.fcp; return } it.fcp=hit[3]; it[1]=Math.round(hit[3]*BASE)||1; n++; ids[k]=hit[0]+'d'; if(!hit[4]) off[k]=1; return }
     if(FCMAP[k]!=null) hit=byId[FCMAP[k]];
     else if(C.fc){
       var c=byName[fcNorm(it[0])];
@@ -1007,6 +1009,48 @@ function fcApply(d){
   try{ schedulePubBotCat() }catch(e){}
   if(/[?&]fc=1/.test(location.search)) alert('FastCard: '+n+' مطابق\n'+(miss.length?('غير مطابق ('+miss.length+'):\n'+miss.join('\n')):'الكل مطابق ✓'));
 }
+
+// ===== إضافة كل أقسام FastCard للموقع تلقائياً =====
+// كل قسم عند FastCard صار «لعبة/بطاقة» لحاله، ومجمّعين بأقسام رئيسية. الأسعار والتوفر من FastCard مباشرة.
+var FC_EXCL={"Blood strike العرب":1,"Blood Strike (GLOBAL)":1,"Delta Force Global 2":1,"Delta Force mena":1,"Delta force Global 1":1,"فري فاير اوتو  4":1,"ببجي اوتو سيرفر 1":1,"عضويات ببجي":1};
+function fcGrp(n){
+  if(/steam|playstation|xbox|itunes|roblox|razer|game ?stop|visa/i.test(n)) return ['cards','بطاقات الألعاب والمتاجر','GIFT CARDS','💳'];
+  if(/netflix|chat ?gpt|vpn|player|tv\b|shahid|canva|capcut|picsart|telegram|snapchat|youtube|gemini|grok|perplexity|cursor|flaticon|gamma|osn|amazon|ip ?tv|iptv|زاين|zain|نوفا|وياك|اكسبلور|vision|trukcell|in video|messi|virginia|hush|duplex|asmar|blue 4k|bob|abe|family|flixnet|ibo|shamna|smarters|look|cyber ghost|ghost|express|hma|nord|proton|surf|tunnel|windscribe|pia\b|pure|browsec|shield|open vpn|gear up/i.test(n)) return ['subs','اشتراكات وتطبيقات','SUBSCRIPTIONS','📺'];
+  if(/imo|tiktok|التيك|تيك|متابعين|مشاهدات|livu|live|chat|meyo|yalla|azar|mixu|tin |1v1|gomeet|liv cam|الفيسبوك|واتساب|shein/i.test(n)) return ['social','تواصل وسوشال ميديا','SOCIAL APPS','💬'];
+  if(/mtn|رصيد|مزود/i.test(n)) return ['bal','رصيد واتصالات','TOP UP','📞'];
+  if(/tool|unlock|frp|box|dongle|octoplus|auth|activation|schematics|imei|xiaomisungwei|icloud|mdm|cpid|ufi|gsm|cert|flash|miracle|pandora|medusa|sigma|setool|infinity|nokia|moto|oppo|realme|ايكلاود|شاومي|سيريلات|فحص|ازالة|الغاء|حذف|ادواة|borneo|orion|pragmafix|dzkj|jcid|hde|dft|eft|evo|fenix|griffin|nck|qcdmapower|rft|rtc|s-tool|sam|srs|tera|tfm|tr tools|uft|umt|yemen|zkey|zxw|repair|mobilesea|ameer|act pro|anony|apizu|avengers|bmtunlocker|cf-|cheetah|click|decoder|dragon|f-key|hua|hunter|laelo|muslim|nooox|panda|phoenix|rd |unlockt|thunder|tira|tmb|fenris|samsung unlocker|samtool|samkey|sam-|fd tool|fast unlocker|general unlocker|global unlocker|golden unlocker|ultra unlock|key-tool|credit |furious gold|multi pro|private unlock|hua dongle|e-gsm tool|rd power|ga pro|ghost auth|frp boss|flash repair|best/i.test(n)) return ['tools','أدوات وخدمات الجوال','PHONE TOOLS','🔧'];
+  return ['games','ألعاب وخدمات','GAMES & MORE','🎮'];
+}
+var FCINJ=null;
+function fcInject(d){
+  d=d||window.FCD; if(!d||!d.items) return;
+  window.FCD=d;
+  if(FCINJ===d && GAMES.some(function(G){return G._fc})) return;
+  for(var i=GAMES.length-1;i>=0;i--) if(GAMES[i]._fc) GAMES.splice(i,1);
+  for(var j=CATS.length-1;j>=0;j--) if(CATS[j].fcSec) CATS.splice(j,1);
+  var cats={}, order=[];
+  d.items.forEach(function(p){
+    if(p[5]>1||FC_EXCL[p[2]]) return;
+    var c=cats[p[2]]; if(!c){ c=cats[p[2]]={n:p[2],min:p[0],it:[]}; order.push(c) }
+    if(p[0]<c.min) c.min=p[0]; c.it.push(p);
+  });
+  order.sort(function(a,b){ return a.min-b.min });
+  var secs={};
+  order.forEach(function(c){
+    var z=c.it.filter(function(p){return p[5]===0}).length, np0=(z*2>c.it.length)?0:1;
+    var list=c.it.filter(function(p){return p[5]===np0}).sort(function(a,b){return a[0]-b[0]});
+    if(!list.length) return;
+    var items=list.map(function(p){ var it=[p[1],Math.round(p[3]*BASE)||1]; it.fcp=p[3]; it._id=p[0]; return it });
+    var g=fcGrp(c.n), gi=GAMES.length;
+    GAMES.push({name:c.n,en:c.n,em:'<b style="font-size:50px;line-height:1">'+g[3]+'</b>',_fc:1,idMode:np0?'txt':'none',idLabel:np0?(list[0][6]||'ID'):'',cats:[{name:'الباقات',items:items}]});
+    (secs[g[0]]=secs[g[0]]||{g:g,list:[]}).list.push(gi);
+  });
+  ['games','cards','subs','social','bal','tools'].forEach(function(k){ var s=secs[k]; if(!s) return;
+    CATS.push({name:s.g[1],en:s.g[2],fcSec:1,games:s.list,em:'<b style="font-size:56px;line-height:1">'+s.g[3]+'</b>'}) });
+  FCINJ=d;
+}
+var _arFC=availRefresh;
+availRefresh=function(){ try{ if(window.FCD) fcInject() }catch(e){} _arFC() };
 function fcSync(){
   if(!FC_BRIDGE||/PUT-YOUR/.test(FC_BRIDGE)) return;
   fetch(FC_BRIDGE.replace(/\/+$/,'')+'/prices',{cache:'no-store'}).then(function(r){ return r.json() }).then(function(d){ if(d&&d.ok&&Array.isArray(d.items)) fcApply(d) }).catch(function(){});
@@ -1494,7 +1538,7 @@ function schedulePubBotCat(){ if(!fbOK) return; clearTimeout(botCatT); botCatT=s
 function botCatBuild(){
   var out=[];
   GAMES.forEach(function(G,gi){
-    if(!G||!G.cats||isOff(String(gi))) return;
+    if(!G||!G.cats||G._fc||isOff(String(gi))) return;
     var cats=[];
     G.cats.forEach(function(C,ci){
       if(isOff(gi+'_'+ci)) return;
@@ -1520,7 +1564,7 @@ function bsPage(P){
   return o;
 }
 function botTreeBuild(){
-  var games=GAMES.map(function(G){ if(!G||!G.cats) return null;
+  var games=GAMES.map(function(G){ if(!G||!G.cats||G._fc) return null;
     return {n:G.name||'',en:G.en||'',m:G.idMode||'num',l:G.idLabel||'',d:G.desc||'',
       c:G.cats.map(function(C){ return {n:C.name||'',i:(C.items||[]).map(function(it){ return [String(it[0]),price(C,it),it[2]?1:0] })} })} });
   var cats=CATS.map(function(K){ return {n:K.name||'',s:K.social?1:0,g:(K.games||[]),p:(K.pages||[]).map(bsPage),d:K.direct?bsPage(K.direct):null} });
@@ -2018,7 +2062,7 @@ function ordersM(){
   h+=all.length?all.slice(0,50).map(function(x){var o=x.o,isT=x.k==='t';
     var title=isT?('💰 تعبئة رصيد — '+mm(o.amount,o.cur)+' · '+esc(o.method)):(('🎮 '+(o.no?'#'+esc(o.no)+' · ':'')+esc(o.game)+' — '+esc(o.pkg)));
     var meta=isT?('رقم العملية: '+esc(o.txn||'—')):(o.ltype?('ربط: '+esc(o.ltype)+' · '+esc(o.lacc||'')):(o.pid?'ID: '+esc(o.pid):''));
-    return '<div class="ord" data-od="'+o.id+'" data-k="'+x.k+'" style="cursor:pointer"><b>'+title+'</b>'+(meta?'<small>'+meta+'</small>':'')+(isT?'<div class="pr">'+mm(o.amount,o.cur)+'</div>':'<div class="pr">'+money(o.price)+'</div>')+bdg(o.status,isT?STT:ST)+(o.note?'<small>السبب: '+esc(o.note)+'</small>':'')+'<small style="color:var(--gold-l);margin-top:6px">🧾 عرض التفاصيل ›</small></div>'}).join(''):'<p class="msg" style="color:#9c9cb0;font-size:17px">لا يوجد طلبات بعد.</p>';
+    return '<div class="ord" data-od="'+o.id+'" data-k="'+x.k+'" style="cursor:pointer"><b>'+title+'</b>'+(meta?'<small>'+meta+'</small>':'')+(isT?'<div class="pr">'+mm(o.amount,o.cur)+'</div>':'<div class="pr">'+money(o.price)+'</div>')+bdg(o.status,isT?STT:ST)+(o.note?'<small>السبب: '+esc(o.note)+'</small>':'')+(o.code?'<small>🔑 الكود: <b dir="ltr" style="user-select:all">'+esc(o.code)+'</b></small>':'')+'<small style="color:var(--gold-l);margin-top:6px">🧾 عرض التفاصيل ›</small></div>'}).join(''):'<p class="msg" style="color:#9c9cb0;font-size:17px">لا يوجد طلبات بعد.</p>';
   showM(h); $('mbody').dataset.v='orders'; setNav('nOrd');
   [].forEach.call($('mbody').querySelectorAll('[data-od]'),function(el){el.onclick=function(){ordDetail(el.dataset.od,el.dataset.k)}});
 }
