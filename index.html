@@ -2079,7 +2079,7 @@ $('wa').addEventListener('click',function(e){
     }
     return run(true).catch(function(er){ if(er&&er.code==='permission-denied') return run(false); throw er });
   })().then(function(no){pingAdmin('🛒 طلب جديد',(no?'#'+no+' — ':'')+clean(G.name)+' — '+clean(P.n)+' — '+money(p),'shopping_cart');pick=null;$('lpw').value='';draw();sum();showM('<h3>'+esc(P.n)+'</h3><p style="font-size:20px;margin:6px 0">طلبك قيد التنفيذ ⌛</p>'+(no?'<p style="margin:0 0 6px">رقم طلبك: <b>#'+esc(no)+'</b></p>':'')+'<p style="color:#9c9cb0;margin:0 0 6px">'+(isLink?'ربط عبر '+esc(ltype)+' · '+esc(lacc):'ID اللاعب: '+esc(pid))+'</p><p style="color:#9c9cb0">خُصم المبلغ من رصيدك، وإذا رُفض الطلب بيرجع لرصيدك تلقائيًا.</p><button class="mb" type="button" onclick="closeM()">حسنًا</button><button class="mb g" id="gOrd" type="button">متابعة طلباتي</button>');$('gOrd').onclick=function(){setNav('nOrd');ordersM()}})
-   .catch(function(er){setErr(er&&er.message==='NOFUNDS'?"رصيدك غير كافٍ":"تعذّر إرسال الطلب، حاول مرة ثانية")}).then(function(){ldr(0)});
+   .catch(function(er){setErr(er&&er.message==='NOFUNDS'?"رصيدك غير كافٍ":"تعذّر إرسال الطلب، حاول مرة ثانية ["+((er&&(er.code||er.message))||'?')+"]")}).then(function(){ldr(0)});
 });
 
 // ===================== إضافات: لودر، تحذيرات، لوحة الأدمن، الفاتورة =====================
@@ -3897,7 +3897,7 @@ function cartGo(from){
     xShow('<h3>تم إرسال '+list.length+' طلبات ✅</h3><p style="margin:6px 0">أرقام طلباتك: <b dir="ltr">'+nos.map(function(n){ return '#'+esc(n) }).join('  ')+'</b></p><p style="color:var(--muted)">خُصم '+esc(money(total))+' من رصيدك، وإذا رُفض أي طلب بيرجع مبلغه لرصيدك تلقائيًا.</p><button class="mb" type="button" onclick="closeM()">حسنًا</button><button class="mb g" id="gOrd2" type="button">متابعة طلباتي</button>','done','');
     $$('gOrd2').onclick=function(){ setNav('nOrd'); ordersM() };
   })
-  .catch(function(er){ se(er&&er.message==='NOFUNDS'?'رصيدك غير كافٍ':'تعذّر إرسال الطلبات، حاول مرة ثانية') })
+  .catch(function(er){ se(er&&er.message==='NOFUNDS'?'رصيدك غير كافٍ':'تعذّر إرسال الطلبات، حاول مرة ثانية ['+((er&&(er.code||er.message))||'?')+']') })
   .then(function(){ ldr(0) });
 }
 
