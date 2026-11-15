@@ -957,7 +957,10 @@ function catItems(gi,ci){
   return C.items.concat(ex.map(function(e){ return [e.n,e.p,!!e.del] }));
 }
 function itName(k,it){ return (PR&&PR.n&&PR.n[k])||it[0] }
-function itPrice(C,k,it){ return (PR&&PR.p&&PR.p[k]!=null)?PR.p[k]:price(C,it) }
+function itPrice(C,k,it){
+  var pp=(PR&&PR.p&&PR.p[k]!=null)?PR.p[k]:null;
+  if(it&&it._id&&it.fcp>0){ var lv=price(C,it); return (pp!=null&&Math.abs(pp-lv)<=lv*0.02+1)?pp:lv }   // أقسام FastCard الجديدة: لو السعر المثبّت قديم/غلط نعرض السعر الحي
+  return pp!=null?pp:price(C,it) }
 function offerOf(k){ var o=PR&&PR.offers&&PR.offers[k]; return (o&&Number(o.p)>0&&Number(o.end)>Date.now())?o:null }
 function itPriceO(C,k,it){ var o=offerOf(k); return o?Number(o.p):itPrice(C,k,it) }
 function curP(P){ var a=String(P.k).split('_'), gi=+a[0], ci=+a[1], ix=+a[2]; return itPriceO(GAMES[gi].cats[ci],P.k,catItems(gi,ci)[ix]) }
