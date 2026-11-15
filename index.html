@@ -957,7 +957,7 @@ function catItems(gi,ci){
   return C.items.concat(ex.map(function(e){ return [e.n,e.p,!!e.del] }));
 }
 function itName(k,it){ return (PR&&PR.n&&PR.n[k])||it[0] }
-function itPrice(C,k,it){ if(it&&it.fcp>0) return price(C,it); return (PR&&PR.p&&PR.p[k]!=null)?PR.p[k]:price(C,it) }
+function itPrice(C,k,it){ return (PR&&PR.p&&PR.p[k]!=null)?PR.p[k]:price(C,it) }
 function offerOf(k){ var o=PR&&PR.offers&&PR.offers[k]; return (o&&Number(o.p)>0&&Number(o.end)>Date.now())?o:null }
 function itPriceO(C,k,it){ var o=offerOf(k); return o?Number(o.p):itPrice(C,k,it) }
 function curP(P){ var a=String(P.k).split('_'), gi=+a[0], ci=+a[1], ix=+a[2]; return itPriceO(GAMES[gi].cats[ci],P.k,catItems(gi,ci)[ix]) }
@@ -2651,7 +2651,7 @@ try{var fl=document.createElement('link');fl.rel='icon';fl.href=LOGO;document.he
   function pinDyn(){
     try{
       var pp={}, dyn={};
-      GAMES.forEach(function(G,gi){ G.cats.forEach(function(C,ci){ catItems(gi,ci).forEach(function(it,ix){ if(it[2]||it.fcp>0) return; var k=gi+'_'+ci+'_'+ix;
+      GAMES.forEach(function(G,gi){ G.cats.forEach(function(C,ci){ catItems(gi,ci).forEach(function(it,ix){ if(it[2]) return; var k=gi+'_'+ci+'_'+ix;
         if(gi<NG0) pp[k]=itPrice(C,k,it); else { pp[k]=+it[1]||0; dyn[k]=pp[k] } }) }) });
       var sig=JSON.stringify(dyn); if(sig===LASTPIN) return; LASTPIN=sig;
       db.collection('config').doc('prices').set({p:pp},{merge:true}).catch(function(){ LASTPIN='' });
