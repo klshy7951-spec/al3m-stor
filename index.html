@@ -1035,11 +1035,11 @@ var FC_BR=[
  [/^مزود/,'شحن رصيد (مزودين)','bal']
 ];
 var FC_SEC={games:['الألعاب','GAMES','🎮'],cards:['بطاقات الألعاب والمتاجر','GIFT CARDS','💳'],subs:['اشتراكات وتطبيقات','SUBSCRIPTIONS','📺'],social:['تواصل وسوشال ميديا','SOCIAL APPS','💬'],bal:['رصيد واتصالات','TOP UP','📞']};
-var FCINJ=null, FCN=0;
+var FCINJ=null, FCN=0, FCTI=null;
 function fcInject(d){
   d=d||window.FCD; if(!d||!d.items) return;
   window.FCD=d;
-  if(FCINJ===d&&GAMES.filter(function(G){return G._fc}).length===FCN) return;
+  if(FCINJ===d&&FCTI===window.FCT&&GAMES.filter(function(G){return G._fc}).length===FCN) return;
   var i,j;
   for(i=GAMES.length-1;i>=0;i--) if(GAMES[i]._fc) GAMES.splice(i,1);
   GAMES.forEach(function(G){ if(G.cats) for(var j=G.cats.length-1;j>=0;j--) if(G.cats[j]._fc) G.cats.splice(j,1) });
@@ -1062,6 +1062,7 @@ function fcInject(d){
     if(mn&&np0&&GAMES[mn[0]]&&GAMES[mn[0]].cats[mn[1]]){ GAMES[mn[0]].cats[mn[1]].items=items; return }
     var ad=FC_ADD[c.n];
     if(ad&&GAMES[ad[0]]&&GAMES[ad[0]].cats){ var AC={name:ad[1],items:items,_fc:1}; if(!np0){ AC.idMode='none' } else { AC.idMode='txt'; AC.idLabel=list[0][6]||'ID' } GAMES[ad[0]].cats.push(AC); return }
+    if(window.FCT&&window.FCT.done) return;   // الشجرة جاهزة: بنبني من ترتيب FastCard الأصلي
     var C={name:c.n,items:items,_fc:1}, br=null;
     if(!np0){ C.idMode='none' } else { C.idMode='txt'; C.idLabel=list[0][6]||'ID' }
     for(var q=0;q<FC_BR.length;q++) if(FC_BR[q][0].test(c.n)){ br=FC_BR[q]; break }
@@ -1091,17 +1092,66 @@ function fcInject(d){
     var S=FC_SEC[k];
     CATS.push({name:S[0],en:S[1],fcSec:1,games:list,em:'<b style="font-size:56px;line-height:1">'+S[2]+'</b>'});
   });
-  FCINJ=d; FCN=GAMES.filter(function(G){return G._fc}).length;
+  if(window.FCT&&window.FCT.done) fcTreeBuild(d,window.FCT);
+  FCINJ=d; FCTI=window.FCT; FCN=GAMES.filter(function(G){return G._fc}).length;
 }
 var _arFC=availRefresh;
 availRefresh=function(){ try{ if(window.FCD) fcInject() }catch(e){} _arFC() };
 function fcKick(){   // يبلّغ الـ Worker فور الطلب ليشحن مباشرة
   try{ if(!FC_BRIDGE||/PUT-YOUR/.test(FC_BRIDGE)) return; setTimeout(function(){ fetch(FC_BRIDGE.replace(/\/+$/,'')+'/kick',{mode:'no-cors',keepalive:true}).catch(function(){}) },1200) }catch(e){} }
+
+// ===== نسخ شجرة أقسام FastCard (نفس الترتيب والأسماء والصور) =====
+var FC_SKIP=/free ?fire|فري فاير|pubg|ببجي|blood ?strike|بلود|delta|دلتا/i;   // ألعاب موجودة عندك بتصميمك الخاص
+function fcImg(u){ return u?'<img loading="lazy" decoding="async" src="'+u+'" alt="">':'' }
+function fcTreeBuild(d,T){
+  var byP={}, byN={};
+  d.items.forEach(function(p){ if(p[5]>1) return; (byP[p[7]]=byP[p[7]]||[]).push(p); (byN[p[2]]=byN[p[2]]||[]).push(p) });
+  function mkCat(id,name){
+    var list=(byP[id]&&byP[id].length)?byP[id]:(byN[name]||[]);
+    if(!list.length) return null;
+    var z=list.filter(function(p){return p[5]===0}).length, np0=(z*2>list.length)?0:1;
+    list=list.filter(function(p){return p[5]===np0}).sort(function(a,b){return a[0]-b[0]});
+    var items=list.map(function(p){ var it=[p[1],Math.round(p[3]*BASE)||1]; it.fcp=p[3]; it._id=p[0]; return it });
+    var C={name:name,items:items,_fc:1};
+    if(!np0) C.idMode='none'; else { C.idMode='txt'; C.idLabel=list[0][6]||'ID' }
+    return C;
+  }
+  function build(G,id){
+    var nd=T.nodes[id]; if(!nd) return null;
+    var kids=(nd[3]||[]).map(function(k){ return build(G,k) }).filter(Boolean);
+    var own=mkCat(id,nd[0]);
+    if(own){ G.cats.push(own); var leaf={n:kids.length?'أخرى':nd[0],img:nd[1],leaf:G.cats.length-1}; if(!kids.length) return leaf; kids.push(leaf) }
+    if(!kids.length) return null;
+    return {n:nd[0],img:nd[1],kids:kids};
+  }
+  (T.roots||[]).forEach(function(rid){
+    var R=T.nodes[rid]; if(!R) return;
+    var list=[];
+    (R[3]||[]).forEach(function(gid){
+      var nd=T.nodes[gid]; if(!nd||FC_SKIP.test(nd[0])) return;
+      var G={name:nd[0],en:nd[0],em:nd[1]?fcImg(nd[1]):'<b style="font-size:50px;line-height:1">🎮</b>',_fc:1,idMode:'txt',idLabel:'',cats:[]};
+      var node=build(G,gid); if(!node||!G.cats.length) return;
+      if(G.cats.length>1&&node.kids) G.nav=node.kids;
+      var allNone=G.cats.every(function(C){return C.idMode==='none'}); G.idMode=allNone?'none':'txt';
+      G.cats.forEach(function(C){ if(!G.idLabel&&C.idLabel) G.idLabel=C.idLabel });
+      list.push(GAMES.length); GAMES.push(G);
+    });
+    if(!list.length) return;
+    var K=null; CATS.forEach(function(x){ if(!K&&!x.fcSec&&x.name===R[0]&&x.games) K=x });
+    if(K){ K.games=K.games.concat(list); return }
+    CATS.push({name:R[0],en:'',fcSec:1,games:list,img:R[1],em:'<b style="font-size:56px;line-height:1">🎁</b>'});
+  });
+}
+function fcSyncTree(){
+  if(!FC_BRIDGE||/PUT-YOUR/.test(FC_BRIDGE)) return;
+  fetch(FC_BRIDGE.replace(/\/+$/,'')+'/tree',{cache:'no-store'}).then(function(r){ return r.json() }).then(function(t){ if(t&&t.ok&&t.done&&t.roots&&t.nodes){ window.FCT=t; if(window.FCD){ fcInject(); try{ availRefresh() }catch(e){} } } }).catch(function(){});
+}
 function fcSync(){
   if(!FC_BRIDGE||/PUT-YOUR/.test(FC_BRIDGE)) return;
   fetch(FC_BRIDGE.replace(/\/+$/,'')+'/prices',{cache:'no-store'}).then(function(r){ return r.json() }).then(function(d){ if(d&&d.ok&&Array.isArray(d.items)) fcApply(d) }).catch(function(){});
 }
 fcSync(); setInterval(fcSync,300000);
+fcSyncTree(); setInterval(fcSyncTree,600000);
 
 // ---- الرئيسية ----
 function curPages(){ var arr=CATS[cat].pages; for(var i=0;i<pidx.length;i++){ var P=arr[pidx[i]]; if(!P||!P.pages){ pidx.length=i; break } arr=P.pages } return arr }
@@ -1167,13 +1217,13 @@ function showGameExtras(G){
 }
 function openGame(i,from){
   gameFrom = from||'list';
-  pick = null; cview = false; closeSheet();
+  pick = null; cview = false; navPath = []; closeSheet();
   g = i; c = 0;
   $('home').hidden = true; $('list').hidden = true; $('game').hidden = false;
   $('gname').textContent = GAMES[i].name; showGameExtras(GAMES[i]);
   draw(); sum(); ready(); window.scrollTo(0,0);
 }
-$('back').onclick = function(){ if(GAMES[g]&&GAMES[g].cats.length>1&&cview){ cview=false; pick=null; draw(); sum(); ready(); window.scrollTo(0,0); return } closeSheet(); $('game').hidden = true; if(gameFrom==='home') $('home').hidden = false; else $('list').hidden = false; window.scrollTo(0,0) };
+$('back').onclick = function(){ var GG=GAMES[g]; if(GG&&(GG.cats.length>1||GG.nav)){ if(cview){ cview=false; pick=null; draw(); sum(); ready(); window.scrollTo(0,0); return } if(navPath.length){ navPath.pop(); draw(); window.scrollTo(0,0); return } } closeSheet(); $('game').hidden = true; if(gameFrom==='home') $('home').hidden = false; else $('list').hidden = false; window.scrollTo(0,0) };
 $('backHome').onclick = function(){ if (pidx.length){ pidx.pop(); $('q').value=''; drawCards(''); window.scrollTo(0,0); return } $('list').hidden = true; $('home').hidden = false; window.scrollTo(0,0) };
 
 // ---- صفحة السوشال ميديا ----
@@ -1224,25 +1274,29 @@ function openCat(i){
 }
 
 // ---- صفحة اللعبة ----
-var cview=false;   // true = داخل فئة (نعرض باقاتها) ، false = نعرض بطاقات الفئات
+var cview=false, navPath=[];   // cview=true: داخل فئة نهائية (نعرض باقاتها) ، false: نعرض بطاقات الفئات/الفرعية
 function draw(){
-  var G = GAMES[g], C = G.cats[c]||G.cats[0], gOff = isOff(String(g)), multi = G.cats.length > 1;
+  var G = GAMES[g], C = G.cats[c]||G.cats[0], gOff = isOff(String(g)), multi = G.cats.length > 1 || !!G.nav;
   if(!multi) cview = true;
   if(multi && !cview && pick && pick.g===g){ c=pick.c; cview=true }   // فتح باقة مباشرة (رابط مشاركة)
   $('cats').innerHTML = ""; $('items').innerHTML = ""; $('items').className = 'cards';
   if (multi && !cview){
-    $('gname').textContent = GAMES[g].name;
-    G.cats.forEach(function(x,i){
-      var o = gOff || isOff(g+'_'+i);
-      var b = btn('card'+(o?' na':''), "", null, function(){ if(o){ toast('هذه الفئة غير متوفرة حالياً'); return } c=i; cview=true; pick=null; draw(); sum(); ready(); window.scrollTo(0,0) });
-      b.innerHTML = '<div class="art"><span aria-hidden="true">'+(G.em||'')+'</span>'+(o?'<em class="nab">غير متوفر</em>':'')+'</div><b></b>';
-      b.lastChild.textContent = x.name;
+    $('gname').textContent = GAMES[g].name + navPath.map(function(n){ return ' — '+clean(n.n) }).join('');
+    var nl = G.nav ? (navPath.length ? navPath[navPath.length-1].kids : G.nav) : G.cats.map(function(x,i){ return {n:x.name,leaf:i} });
+    nl.forEach(function(nd){
+      var ci = nd.leaf, o = gOff || (ci!=null && isOff(g+'_'+ci));
+      var b = btn('card'+(o?' na':''), "", null, function(){
+        if(o){ toast('هذه الفئة غير متوفرة حالياً'); return }
+        if(ci!=null){ c=ci; cview=true; pick=null; draw(); sum(); ready() } else { navPath.push(nd); draw() }
+        window.scrollTo(0,0) });
+      b.innerHTML = '<div class="art"><span aria-hidden="true">'+(nd.img?fcImg(nd.img):(G.em||''))+'</span>'+(o?'<em class="nab">غير متوفر</em>':'')+'</div><b></b>';
+      b.lastChild.textContent = nd.n;
       $('items').appendChild(b);
     });
     return;
   }
   C = G.cats[c]; var cOff = isOff(g+'_'+c);
-  $('gname').textContent = multi ? (GAMES[g].name+' — '+clean(C.name)) : GAMES[g].name;
+  $('gname').textContent = multi ? (GAMES[g].name+navPath.map(function(n){ return ' — '+clean(n.n) }).join('')+' — '+clean(C.name)) : GAMES[g].name;
   catItems(g,c).forEach(function(it,ix){
     if (it[2]) return;
     var k = g+'_'+c+'_'+ix, nm = itName(k,it), p = itPriceO(C,k,it), off = gOff || cOff || isOff(k);
